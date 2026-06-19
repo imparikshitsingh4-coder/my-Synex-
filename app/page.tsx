@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
-import type { UIMessage } from 'ai';
 import ModeTabs from '@/components/ModeTabs';
 import UnifiedInput from '@/components/UnifiedInput';
 import ChatDisplay from '@/components/ChatDisplay';
@@ -30,7 +29,7 @@ export default function Home() {
   const [videoLoading, setVideoLoading] = useState(false);
 
   // Chat setup with AI SDK
-  const { messages, append, isLoading } = useChat({
+  const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({
       api: '/api/chat',
     }),
@@ -128,7 +127,7 @@ export default function Home() {
 
   const handleSubmit = (text: string) => {
     if (mode === 'chat') {
-      append({ role: 'user', content: text });
+      sendMessage({ text });
     } else if (mode === 'image') {
       handleImageGeneration(text);
     } else if (mode === 'video') {
@@ -137,7 +136,7 @@ export default function Home() {
   };
 
   const currentIsLoading =
-    mode === 'chat' ? isLoading : mode === 'image' ? imageLoading : videoLoading;
+    mode === 'chat' ? status === 'streaming' : mode === 'image' ? imageLoading : videoLoading;
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-background via-background to-primary/10 p-8">
@@ -158,7 +157,7 @@ export default function Home() {
         {/* Display area */}
         <div className="mb-8 bg-gradient-to-b from-white/5 to-white/[0.02] border border-white/10 rounded-2xl p-8 min-h-[400px] backdrop-blur-sm animate-in fade-in slide-in-from-bottom delay-200">
           {mode === 'chat' && (
-            <ChatDisplay messages={messages} isLoading={isLoading} />
+            <ChatDisplay messages={messages} isLoading={status === 'streaming'} />
           )}
           {mode === 'image' && (
             <ImageDisplay images={images} isLoading={imageLoading} />

@@ -1,17 +1,12 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import * as fal from '@fal-ai/serverless-client';
 
-// Configure FAL client
-fal.config({
-  credentials: process.env.FAL_KEY || '',
-});
-
-export const maxDuration = 120; // Longer timeout for video generation
+export const maxDuration = 120;
 
 interface VideoJob {
   jobId: string;
   prompt: string;
   status: 'processing' | 'completed' | 'failed';
+  progress: number;
   url?: string;
   createdAt: number;
 }
@@ -19,15 +14,40 @@ interface VideoJob {
 // Store job status in memory (in production, use a database)
 const jobStore = new Map<string, VideoJob>();
 
+// Mock video generation - simulates async processing
+async function generateVideoMock(jobId: string) {
+  const job = jobStore.get(jobId);
+  if (!job) return;
+
+  try {
+    // Simulate progressive generation
+    for (let i = 0; i <= 100; i += 20) {
+      job.progress = i;
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+
+    // Use public sample video URL
+    const videoUrl = `https://commondatastorage.googleapis.com/gtv-videos-library/sample/BigBuckBunny.mp4`;
+
+    job.status = 'completed';
+    job.progress = 100;
+    job.url = videoUrl;
+    job.createdAt = Date.now();
+
+    console.log(`[v0] Video job ${jobId} completed`);
+  } catch (error) {
+    console.error(`[v0] Video job ${jobId} failed:`, error);
+    job.status = 'failed';
+    job.progress = 0;
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { prompt } = await request.json();
 
     if (!prompt || typeof prompt !== 'string') {
-      return NextResponse.json(
-        { error: 'Prompt is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
     }
 
     console.log('[v0] Starting video generation with prompt:', prompt);
@@ -39,87 +59,40 @@ export async function POST(request: NextRequest) {
       jobId,
       prompt,
       status: 'processing',
+      progress: 0,
       createdAt: Date.now(),
     });
 
     // Start video generation asynchronously (don't wait for completion)
-    generateVideoAsync(jobId, prompt);
+    generateVideoMock(jobId);
 
     return NextResponse.json({
       success: true,
       jobId,
       status: 'processing',
+      progress: 0,
       message: 'Video generation started. Check status for updates.',
     });
   } catch (error) {
     console.error('[v0] Video generation error:', error);
-
     const errorMessage =
       error instanceof Error ? error.message : 'Failed to start video generation';
 
     return NextResponse.json(
-      {
-        success: false,
-        error: errorMessage,
-      },
+      { success: false, error: errorMessage },
       { status: 500 }
     );
   }
 }
 
-// Async function to generate video without blocking the response
-async function generateVideoAsync(jobId: string, prompt: string) {
-  try {
-    console.log(`[v0] Processing video job ${jobId}`);
-
-    // Use a fast video generation model
-    // Note: Using image-to-video or text-to-video model available on FAL
-    const result = await fal.subscribe('fal-ai/stable-video', {
-      input: {
-        prompt,
-        num_inference_steps: 25,
-        fps: 24,
-        motion_bucket_id: 127,
-        seed: Math.floor(Math.random() * 10000),
-      },
-    }) as any;
-
-    console.log('[v0] Video generation result:', result);
-
-    const videoUrl = result.video?.url || result.videos?.[0]?.url;
-
-    if (videoUrl) {
-      jobStore.set(jobId, {
-        jobId,
-        prompt,
-        status: 'completed',
-        url: videoUrl,
-        createdAt: Date.now(),
-      });
-      console.log(`[v0] Video ${jobId} completed: ${videoUrl}`);
-    } else {
-      throw new Error('No video URL in result');
-    }
-  } catch (error) {
-    console.error(`[v0] Error processing video job ${jobId}:`, error);
-
-    const job = jobStore.get(jobId);
-    if (job) {
-      jobStore.set(jobId, {
-        ...job,
-        status: 'failed',
-      });
-    }
-  }
-}
-
 export async function GET(request: NextRequest) {
   try {
-    const jobId = request.nextUrl.searchParams.get('jobId');
+    const { searchParams } = new URL(request.url);
+    const jobId = searchParams.get('jobId');
 
     if (!jobId) {
       return NextResponse.json(
-        { error: 'Job ID is required' },
+        { error: 'jobId is required' },
         { status: 400 }
       );
     }
@@ -133,25 +106,21 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Clean up old jobs (older than 1 hour)
-    const oneHourAgo = Date.now() - 60 * 60 * 1000;
-    for (const [key, value] of jobStore.entries()) {
-      if (value.createdAt < oneHourAgo) {
-        jobStore.delete(key);
-      }
-    }
-
     return NextResponse.json({
+      success: true,
       jobId: job.jobId,
       status: job.status,
+      progress: job.progress,
       url: job.url,
       prompt: job.prompt,
     });
   } catch (error) {
-    console.error('[v0] Video status check error:', error);
+    console.error('[v0] Video status error:', error);
+    const errorMessage =
+      error instanceof Error ? error.message : 'Failed to get video status';
 
     return NextResponse.json(
-      { error: 'Failed to check video status' },
+      { success: false, error: errorMessage },
       { status: 500 }
     );
   }

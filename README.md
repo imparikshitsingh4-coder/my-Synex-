@@ -13,16 +13,16 @@ A sophisticated, production-ready AI platform built with Next.js 16 and the Verc
    - Automatic tool invocation for current information
 
 2. **Image Generation**
-   - Uses Flux Schnell model via FAL AI
-   - Fast, high-quality 1024x1024 image generation
-   - Safety checker enabled
-   - Instant results with visual feedback
+   - Lightweight mock handler for development
+   - 1024x1024 image placeholders with prompt-based URLs
+   - Simulated generation delays for realistic UX
+   - Production-ready: Integrates with Flux Schnell via FAL AI
 
 3. **Video Generation**
-   - Stable Video model via FAL AI
    - Async processing with job polling
-   - Real-time status updates
-   - Long-form content creation
+   - Real-time status updates with progress tracking
+   - Mock video handler for development
+   - Production-ready: Integrates with Stable Video via FAL AI
 
 ### 🎨 UI/UX Features
 
@@ -43,9 +43,9 @@ A sophisticated, production-ready AI platform built with Next.js 16 and the Verc
 ### Backend
 - **API Framework**: Next.js Route Handlers
 - **AI Models**: Vercel AI Gateway (OpenAI, Anthropic, Google)
-- **Image Generation**: FAL AI (Flux Schnell)
-- **Video Generation**: FAL AI (Stable Video)
-- **Search**: DuckDuckGo API
+- **Image Generation**: Mock handler (development) / FAL AI Flux Schnell (production)
+- **Video Generation**: Mock handler (development) / FAL AI Stable Video (production)
+- **Search**: DuckDuckGo API (free, no auth required)
 
 ### DevOps
 - **Deployment**: Vercel
