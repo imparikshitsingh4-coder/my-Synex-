@@ -1,12 +1,23 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import * as fal from '@fal-ai/serverless-client';
-
-// Configure FAL client
-fal.config({
-  credentials: process.env.FAL_KEY || '',
-});
 
 export const maxDuration = 60;
+
+// Mock image generation using placeholder service
+async function generateImageMock(prompt: string): Promise<string> {
+  // Simulate API call delay
+  await new Promise(resolve => setTimeout(resolve, 1500));
+  
+  // Generate a deterministic image URL based on prompt hash
+  const hash = prompt
+    .split('')
+    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  
+  // Use a public image placeholder service
+  const size = '1024x1024';
+  const imageUrl = `https://picsum.photos/${size}?random=${hash}`;
+  
+  return imageUrl;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,31 +32,17 @@ export async function POST(request: NextRequest) {
 
     console.log('[v0] Generating image with prompt:', prompt);
 
-    // Use Flux Schnell model for fast, high-quality image generation
-    const result = await fal.subscribe('fal-ai/flux-schnell', {
-      input: {
-        prompt,
-        image_size: 'square_hd', // 1024x1024
-        num_inference_steps: 4,
-        num_images: 1,
-        enable_safety_checker: true,
-      },
-    }) as any;
+    // Use mock image generation
+    const imageUrl = await generateImageMock(prompt);
 
-    console.log('[v0] FAL result:', result);
-
-    // Extract the image URL from the result
-    const imageUrl = result.images?.[0]?.url;
-
-    if (!imageUrl) {
-      console.error('[v0] No image URL in result:', result);
-      throw new Error('No image generated');
-    }
+    console.log('[v0] Generated image URL:', imageUrl);
 
     return NextResponse.json({
       success: true,
       url: imageUrl,
       prompt,
+      model: 'flux-schnell-mock',
+      generatedAt: new Date().toISOString(),
     });
   } catch (error) {
     console.error('[v0] Image generation error:', error);
