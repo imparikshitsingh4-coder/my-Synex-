@@ -604,9 +604,40 @@ function insTpl(){var t=["Write a professional email to [Name] about [Topic].","
 function handleFiles(inp){Array.from(inp.files).forEach(function(f){G.atts.push(f);var a=document.getElementById("fp");var c=document.createElement("div");c.className="fchip";var ic=f.type.indexOf("image")>=0?"\uD83D\uDDBC\uFE0F":f.type.indexOf("pdf")>=0?"\uD83D\uDCC4":"\uD83D\uDCCE";c.innerHTML=ic+" "+(f.name.length>22?f.name.slice(0,22)+"...":f.name)+' <span class="frm" onclick="this.parentElement.remove()">\u00D7</span>';a.appendChild(c);});inp.value="";}
 
 async function sendMsg(){
-  var inp=document.getElementById("msgin");var text=inp.value.trim();if(!text||G.busy)return;
-  hideEmpty();showSC();
-  addMsg("user",esc(text).replace(/\n/g,"<br>"),text);
+ async function sendMsg(){
+    var inp=document.getElementById("msgin"); var text=inp.value.trim(); if(!text||G.busy)return;
+    
+    // --- Advanced Image Generator Interceptor ---
+    if (text.startsWith('/image ')) {
+        var prompt = text.replace('/image ', '');
+        hideEmpty(); showSc();
+        addMsg("user", esc(text).replace(/\n/g, "<br>")); clearInp();
+        addMsg("ai", "🎨 Generating your image, please wait a few seconds...");
+        
+        // Target the AI bubble that was just created
+        var lastAiMsg = document.querySelector(".ca div:last-child"); 
+        var encodedPrompt = encodeURIComponent(prompt);
+        var imageUrl = "https://image.pollinations.ai/p/" + encodedPrompt + "?width=1024&height=1024&nologo=true&seed=" + Math.floor(Math.random() * 100000);
+        
+        var img = new Image();
+        img.src = imageUrl;
+        img.onload = function() {
+            if(lastAiMsg) {
+                // Inserts a premium image card into the chat area
+                lastAiMsg.innerHTML = '<div style="margin-top: 8px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.3);"><img src="' + imageUrl + '" style="width: 100%; height: auto; display: block;" /><div style="background: rgba(255,255,255,0.05); padding: 8px 12px; font-size: 0.85rem; color: #aaa;"><strong>Prompt:</strong> ' + esc(prompt) + '</div></div>';
+            }
+        };
+        img.onerror = function() {
+            if(lastAiMsg) lastAiMsg.innerText = "❌ Failed to generate image. Try again!";
+        };
+        return; // Prevents the text from being sent to Groq
+    }
+
+    hideEmpty(); showSc();
+    addMsg("user", esc(text).replace(/\n/g, "<br>")); clearInp();
+    
+    var title=text.slice(0,42); // This is where line 610 continues...
+   
   G.msgs.push({role:"user",content:text});clearInp();
   var title=text.slice(0,42);if(!G.convId)startConv(title);document.getElementById("tbtit").textContent=title;
   var tid=showTyping();G.busy=true;
