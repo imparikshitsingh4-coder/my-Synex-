@@ -604,7 +604,6 @@ function insTpl(){var t=["Write a professional email to [Name] about [Topic].","
 function handleFiles(inp){Array.from(inp.files).forEach(function(f){G.atts.push(f);var a=document.getElementById("fp");var c=document.createElement("div");c.className="fchip";var ic=f.type.indexOf("image")>=0?"\uD83D\uDDBC\uFE0F":f.type.indexOf("pdf")>=0?"\uD83D\uDCC4":"\uD83D\uDCCE";c.innerHTML=ic+" "+(f.name.length>22?f.name.slice(0,22)+"...":f.name)+' <span class="frm" onclick="this.parentElement.remove()">\u00D7</span>';a.appendChild(c);});inp.value="";}
 
 async function sendMsg(){
- async function sendMsg(){
     var inp=document.getElementById("msgin"); var text=inp.value.trim(); if(!text||G.busy)return;
     
     // --- Advanced Image Generator Interceptor ---
@@ -633,8 +632,6 @@ async function sendMsg(){
         return; // Prevents the text from being sent to Groq
     }
 
-    hideEmpty(); showSc();
-    addMsg("user", esc(text).replace(/\n/g, "<br>")); clearInp();
     
     var title=text.slice(0,42); // This is where line 610 continues...
    
