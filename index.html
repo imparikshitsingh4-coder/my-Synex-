@@ -300,6 +300,70 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   #wake{bottom:74px;right:10px}
   .tbtit{font-size:12px}
 }
+  /* --- Premium UI Polish Extensions --- */
+
+/* 1. Smooth, floating slide-up animation for new chat messages */
+.message, [class*="message"] {
+  animation: floatIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes floatIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 2. Premium glowing active state for the chat input box */
+input, textarea, [contenteditable="true"] {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+input:focus, textarea:focus, [contenteditable="true"]:focus {
+  border-color: #ec4899 !important; /* Matches your theme's pink/accent color */
+  box-shadow: 0 0 15px rgba(236, 72, 153, 0.25), inset 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+  transform: translateY(-1px);
+}
+
+/* 3. Smooth hover effects for buttons (Send, Gear, Trash, etc.) */
+button, [role="button"] {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+button:hover, [role="button"]:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+button:active, [role="button"]:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* 4. Fluid streaming scroll container */
+div, section, main {
+  scroll-behavior: smooth !important;
+}
+
+/* Custom premium scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.3);
+  border-radius: 9999px;
+  transition: background 0.2s;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.6);
+}
 </style>
 </head>
 <body>
