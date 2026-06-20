@@ -651,130 +651,45 @@ async function sendMsg(){
         removeTyping(tid); var m = "\u26A0\uFEOF " + (err.message || "Something went wrong. Please try again."); addMsg("ai", m);
     }
     G.busy = false;
-}
-  
+      }
 async function callGroq(){
-  var pers={assistant:"You are My Synex, a highly intelligent AI assistant. Be helpful, precise, and thorough.",tutor:"You are My Synex, an expert tutor. Explain clearly with examples.",creative:"You are My Synex, a creative AI. Think imaginatively and use vivid language.",analyst:"You are My Synex, a sharp analyst. Be data-driven and structured.",coder:"You are My Synex, an elite programmer. Write clean, well-commented code."};
-  var lens={concise:"Keep responses brief.",balanced:"Balance detail with brevity.",detailed:"Be comprehensive and detailed."};
-  var p=document.getElementById("pers").value||"assistant";var l=document.getElementById("rlen").value||"balanced";var t=parseFloat(document.getElementById("temp").value||"0.7");
-  var sys=(pers[p]||pers.assistant)+" "+(lens[l]||lens.balanced);if(G.think)sys+=" Think step by step before answering.";
-  var messages=[{role:"system",content:sys}].concat(G.msgs);
-  var res=await fetch(GU,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+GK},body:JSON.stringify({model:GM,messages:messages,temperature:t,max_tokens:2048})});
-  if(!res.ok){var e=await res.json().catch(function(){return{};});throw new Error(e.error&&e.error.message?e.error.message:"API error "+res.status);}
-  var data=await res.json();
-  return(data.choices&&data.choices[0]&&data.choices[0].message)?data.choices[0].message.content:"No response received.";
+    var pers={assistant:"You are My Synex, a highly intelligent AI assistant. Be helpful, precise, and thorough.",tutor:"...",lens:{concise:"Keep responses brief.",balanced:"Balance detail with brevity.",detailed:"Be comprehensive and detailed."}};
+    var p=document.getElementById("pers").value||"assistant"; var l=document.getElementById("rlen").value||"balanced"; var sys=(pers[p]||pers.assistant)+" "+(lens[l]||lens.balanced); if(G.think)sys+=" Think step by step before answering.";
+    var messages=[{role:"system",content:sys}].concat(G.msgs);
+    var res=await fetch(GU,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+GK},body:JSON.stringify({model:GM,messages:messages,temperature:0.6,max_tokens:4096})});
+    if(!res.ok){var e=await res.json().catch(function(){return{};});throw new Error(e.error&&e.error.message?e.error.message:"No response received from model.");}
+    var data=await res.json();
+    return(data.choices&&data.choices[0]&&data.choices[0].message)?data.choices[0].message.content:"No response received.";
 }
+
 function hideEmpty(){var e=document.getElementById("empty");if(e)e.style.display="none";}
-function showSC(){document.getElementById("schips").style.display="flex";}
+function showSc(){document.getElementById("schips").style.display="flex";}
 function addMsg(role,html,raw){
-  var area=document.getElementById("ca");var w=document.createElement("div");w.className="mw "+role+" fi";
-  var now=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});var enc=encodeURIComponent(raw||"");
-  if(role==="ai"){w.innerHTML='<div class="mav"><img src="'+LOGO+'" alt=""/></div><div style="flex:1;min-width:0"><div class="mb">'+html+'</div><div class="mm"><span class="mt">'+now+'</span><button class="ma" onclick="cpyM(this,\''+enc+'\')">Copy</button><button class="ma" onclick="spkM(\''+enc+'\')">&#128226; Read</button><button class="ma" onclick="regen()">&#8635; Redo</button></div></div>';}
-  else{w.innerHTML='<div style="width:100%;display:flex;justify-content:flex-end"><div><div class="mb">'+html+'</div><div class="mm" style="justify-content:flex-end"><span class="mt">'+now+'</span><button class="ma" onclick="edtM(\''+enc+'\')">Edit</button></div></div></div>';}
-  area.appendChild(w);area.scrollTop=area.scrollHeight;
-  w.querySelectorAll("pre").forEach(function(pre){var b=document.createElement("button");b.className="ccbtn";b.textContent="Copy";b.onclick=function(){navigator.clipboard.writeText(pre.textContent||"");b.textContent="Copied!";setTimeout(function(){b.textContent="Copy";},2000);};pre.style.position="relative";pre.appendChild(b);});
+ var area=document.getElementById("ca");var w=document.getElementById("div");w.className="mw -role- fi";
+  
+    var now=new Date();toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
+    if(role==="ai"){w.innerHTML='<div class="mav"><img src="'+LOGO+'" alt=""/></div><div style="flex:1;min-width:0;"><div class="nb">'+html+'</div></div>';}
+    else{w.innerHTML='<div style="width:100%;display:flex;justify-content:flex-end;"><div class="nb">'+html+'</div></div>';}
+    area.appendChild(w);area.scrollTop=area.scrollHeight;
+    w.querySelectorAll("pre").forEach(function(pre){var b=document.createElement("button");b.className="ccbtn";b.textContent="Copy";pre.appendChild(b);});
 }
-function showTyping(){var a=document.getElementById("ca");var id="ty_"+Date.now();var el=document.createElement("div");el.id=id;el.className="mw ai fi";el.innerHTML='<div class="mav"><img src="'+LOGO+'" alt=""/></div><div class="mb"><div class="tdots"><span></span><span></span><span></span></div></div>';a.appendChild(el);a.scrollTop=a.scrollHeight;return id;}
+function showTyping(){var a=document.getElementById("ca");var id="ty_"+Date.now();var el=document.createElement("div");el.id=id;el.className="mw -role- fi";el.innerHTML='<div class="mav"><img src="'+LOGO+'" alt=""/></div><div class="nb"><div class="dot-flashing"></div></div>';a.appendChild(el);a.scrollTop=a.scrollHeight;return id;}
 function removeTyping(id){var el=document.getElementById(id);if(el)el.remove();}
 function fmt(text){
-  if(!text)return"";var h=esc(text);
-  h=h.replace(/```(\w*)\n?([\s\S]*?)```/g,function(_,l,c){return"<pre><code>"+c.trim()+"</code></pre>";});
-  h=h.replace(/`([^`\n]+)`/g,"<code>$1</code>");
-  h=h.replace(/^### (.+)$/gm,"<h3>$1</h3>");h=h.replace(/^## (.+)$/gm,"<h2>$1</h2>");h=h.replace(/^# (.+)$/gm,"<h1>$1</h1>");
-  h=h.replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>");h=h.replace(/\*([^*\n]+)\*/g,"<em>$1</em>");
-  h=h.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
-  h=h.replace(/^[-*\u2022] (.+)$/gm,"<li>$1</li>");h=h.replace(/^\d+\. (.+)$/gm,"<li>$1</li>");
-  h=h.replace(/(<li>[\s\S]*?<\/li>)/g,"<ul>$1</ul>");h=h.replace(/<\/ul>\s*<ul>/g,"");
-  h=h.replace(/\n\n+/g,"</p><p>");h=h.replace(/\n/g,"<br>");
-  if(!h.startsWith("<"))h="<p>"+h+"</p>";return h;
+    if(!text)return"";var h=esc(text);
+    h=h.replace(/```([\w\-]+)?\n?([\s\S]*?)```/g,function(_,l,c){return"<pre><code>"+c.trim()+"</code></pre>";});
+    h=h.replace(/`([^`\n]+)`/g,"<code>$1</code>");
+    h=h.replace(/^\s*###\s+(.+)$/gm,"<h3>$1</h3>");h=h.replace(/^\s*##\s+(.+)$/gm,"<h2>$1</h2>");h=h.replace(/^\s*#\s+(.+)$/gm,"<h1>$1</h1>");
+    h=h.replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>");h=h.replace(/\*([^*]+)\*/g,"<em>$1</em>");
+    h=h.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+    h=h.replace(/^\s*-\s+(.+)$/gm,"<li>$1</li>");h=h.replace(/^\s*\d+\.\s+(.+)$/gm,"<li>$1</li>");
+    h=h.replace(/(<\/li>)\n(?=<li>)/g,"$1");h=h.replace(/<li>([\s\S]*?)<\/li>/g,"<ul><li>$1</li></ul>");
+    h=h.replace(/\n\n+/g,"</p><p>");h=h.replace(/\n/g,"<br>");
+    if(!h.startsWith("<"))h="<p>"+h+"</p>";return h;
 }
-function esc(t){return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
-function cpyM(btn,enc){navigator.clipboard.writeText(decodeURIComponent(enc)).then(function(){btn.textContent="Copied!";setTimeout(function(){btn.textContent="Copy";},2000);}).catch(function(){showToast("Copy failed");});}
-function spkM(enc){if(!G.synth)return;G.synth.cancel();var u=new SpeechSynthesisUtterance(decodeURIComponent(enc).slice(0,600));u.rate=1;G.synth.speak(u);}
-function edtM(enc){var i=document.getElementById("msgin");i.value=decodeURIComponent(enc);i.focus();autoR(i);}
-async function regen(){
-  if(!G.msgs.length)return;if(G.msgs[G.msgs.length-1].role==="assistant")G.msgs.pop();
-  var last=document.querySelector(".mw.ai:last-child");if(last)last.remove();
-  var tid=showTyping();G.busy=true;
-  try{var r=await callGroq();removeTyping(tid);addMsg("ai",fmt(r),r);G.msgs.push({role:"assistant",content:r});}
-  catch(e){removeTyping(tid);addMsg("ai","\u26A0\uFE0F "+e.message,e.message);}G.busy=false;
-}
-function startConv(t){G.convId=Date.now().toString();G.hist.unshift({id:G.convId,title:t.slice(0,40),msgs:[]});if(G.hist.length>40)G.hist.pop();renderHist();}
-function saveConv(title){var c=G.hist.find(function(h){return h.id===G.convId;});if(c){c.msgs=G.msgs.map(function(m){return{r:m.role,t:m.content};});c.title=title.slice(0,40);try{localStorage.setItem("sx_h",JSON.stringify(G.hist));}catch(e){}}}
-function loadConv(id){var c=G.hist.find(function(h){return h.id===id;});if(!c)return;G.convId=id;G.msgs=(c.msgs||[]).map(function(m){return{role:m.r,content:m.t};});hideEmpty();document.getElementById("ca").querySelectorAll(".mw").forEach(function(el){el.remove();});G.msgs.forEach(function(m){addMsg(m.role==="assistant"?"ai":"user",fmt(m.content),m.content);});document.getElementById("tbtit").textContent=c.title;showSC();if(window.innerWidth<=700)document.getElementById("sidebar").classList.remove("open");}
-function renderHist(){var list=document.getElementById("hlst");if(!G.hist.length){list.innerHTML='<div style="padding:7px 11px;font-size:11px;color:var(--text3)">No chats yet</div>';return;}list.innerHTML=G.hist.slice(0,30).map(function(h){return'<div class="hi" onclick="loadConv(\''+h.id+'\')">&#128172; '+esc(h.title||"Chat")+"</div>";}).join("");}
-function newChat(){G.msgs=[];G.convId=null;G.atts=[];document.getElementById("fp").innerHTML="";document.getElementById("ca").querySelectorAll(".mw").forEach(function(el){el.remove();});var e=document.getElementById("empty");if(e)e.style.display="";document.getElementById("schips").style.display="none";document.getElementById("tbtit").textContent="New Conversation";clearInp();if(window.innerWidth<=700)document.getElementById("sidebar").classList.remove("open");}
-function doExport(f){
-  if(!G.msgs.length){showToast("No messages to export");return;}
-  var title=document.getElementById("tbtit").textContent;var date=new Date().toLocaleString();var c="";
-  if(f==="txt"){c="My Synex Chat\n"+title+"\n"+date+"\n---\n\n";G.msgs.forEach(function(m){c+="["+(m.role==="assistant"?"SYNEX":"YOU")+"]\n"+m.content+"\n\n";});dl(c,"synex.txt","text/plain");}
-  else if(f==="md"){c="# My Synex\n*"+date+"*\n\n---\n\n";G.msgs.forEach(function(m){c+="**"+(m.role==="assistant"?"Synex":"You")+"**\n\n"+m.content+"\n\n---\n\n";});dl(c,"synex.md","text/markdown");}
-  else if(f==="json"){c=JSON.stringify({title:title,date:date,messages:G.msgs.map(function(m){return{role:m.role,text:m.content};})},null,2);dl(c,"synex.json","application/json");}
-  else if(f==="html"){c='<!DOCTYPE html><html><head><title>My Synex</title><style>body{background:#050507;color:#f0f0f0;font-family:sans-serif;max-width:780px;margin:40px auto;padding:20px}.u{background:rgba(99,102,241,0.15);padding:14px;border-radius:10px;margin:10px 0}.a{background:#0d0d14;padding:14px;border-radius:10px;margin:10px 0}</style></head><body><h1>My Synex</h1><h3>'+esc(title)+'</h3><p style="color:#555">'+date+"</p>";G.msgs.forEach(function(m){c+='<div class="'+(m.role==="assistant"?"a":"u")+'"><b>'+(m.role==="assistant"?"Synex":"You")+"</b><p>"+esc(m.content).replace(/\n/g,"<br>")+"</p></div>";});c+="</body></html>";dl(c,"synex.html","text/html");}
-  closePanel("exppnl");showToast("Exported!");
-}
-function dl(content,filename,type){var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([content],{type:type}));a.download=filename;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(a.href);},1000);}
-function openPanel(id){document.getElementById(id).classList.add("on");}
-function closePanel(id){document.getElementById(id).classList.remove("on");}
-function showToast(msg){var t=document.getElementById("toast");t.textContent=msg;t.classList.add("on");setTimeout(function(){t.classList.remove("on");},2500);}
+function esc(text){return String(text).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");}
+function cpyM(btn,enc){navigator.clipboard.writeText  
 
-document.addEventListener("DOMContentLoaded",function(){
-  setLogos();
-  // Greeting
-  document.getElementById("gsbtn").addEventListener("click",doSave);
-  document.getElementById("gsinp").addEventListener("keydown",function(e){if(e.key==="Enter")doSave();});
-  document.getElementById("gbx").addEventListener("click",hideBar);
-  // Settings
-  document.getElementById("tt").addEventListener("click",function(){togSet(this,"deepThink");});
-  document.getElementById("tw").addEventListener("click",function(){togSet(this,"wakeWord");});
-  document.getElementById("tr").addEventListener("click",function(){togSet(this,"autoRead");});
-  document.getElementById("setcl").addEventListener("click",function(){closePanel("setpnl");});
-  document.getElementById("chnm").addEventListener("click",changeName);
-  document.getElementById("openset").addEventListener("click",function(){openPanel("setpnl");});
-  // Export
-  document.getElementById("expcl").addEventListener("click",function(){closePanel("exppnl");});
-  document.getElementById("exp-txt").addEventListener("click",function(){doExport("txt");});
-  document.getElementById("exp-md").addEventListener("click",function(){doExport("md");});
-  document.getElementById("exp-json").addEventListener("click",function(){doExport("json");});
-  document.getElementById("exp-html").addEventListener("click",function(){doExport("html");});
-  // Topbar
-  document.getElementById("menubtn").addEventListener("click",function(){document.getElementById("sidebar").classList.toggle("open");});
-  document.getElementById("newchat").addEventListener("click",newChat);
-  document.getElementById("tb-voice").addEventListener("click",startVoice);
-  document.getElementById("tb-export").addEventListener("click",function(){openPanel("exppnl");});
-  document.getElementById("tb-settings").addEventListener("click",function(){openPanel("setpnl");});
-  document.getElementById("tb-clear").addEventListener("click",newChat);
-  // Voice
-  document.getElementById("vmute").addEventListener("click",togMute);
-  document.getElementById("vend").addEventListener("click",closeVoice);
-  // Wake
-  document.getElementById("wake").addEventListener("click",function(){if(G.wakeOn){stopWake();G.cfg.wakeWord=false;}else{startWake();G.cfg.wakeWord=true;}saveC();setT("tw",G.wakeOn);showToast(G.wakeOn?"Wake word on":"Wake word off");});
-  // Input
-  document.getElementById("msgin").addEventListener("keydown",function(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMsg();}});
-  document.getElementById("msgin").addEventListener("input",function(){autoR(this);updCC();});
-  document.getElementById("sbtn").addEventListener("click",sendMsg);
-  document.getElementById("tb-v2").addEventListener("click",startVoice);
-  document.getElementById("thkbtn").addEventListener("click",function(){G.think=!G.think;G.cfg.deepThink=G.think;saveC();updThk();showToast(G.think?"Deep Think ON":"Deep Think off");});
-  document.getElementById("tplbtn").addEventListener("click",insTpl);
-  document.getElementById("clrbtn").addEventListener("click",clearInp);
-  document.getElementById("filein").addEventListener("change",function(){handleFiles(this);});
-  // Mode pills
-  document.querySelectorAll(".mp").forEach(function(el){el.addEventListener("click",function(){document.querySelectorAll(".mp").forEach(function(p){p.classList.remove("on");});this.classList.add("on");G.mode=this.dataset.mode;var ph={chat:"Message My Synex...",code:"Describe code or paste to debug...",creative:"What would you like me to write?",research:"What do you want to research?"};document.getElementById("msgin").placeholder=(ph[G.mode]||ph.chat)+" (Enter to send)";});});
-  // Nav
-  document.querySelectorAll(".ni").forEach(function(el){el.addEventListener("click",function(){document.querySelectorAll(".ni").forEach(function(n){n.classList.remove("on");});this.classList.add("on");var s=this.dataset.nav;if(s==="voice"){startVoice();return;}var pf={code:"Write code to ",translate:"Translate to [language]: ",summarize:"Summarize the following:\n\n",files:"Analyze this:\n\n"};if(pf[s]){var i=document.getElementById("msgin");i.value=pf[s];i.focus();autoR(i);}if(s==="files")document.getElementById("filein").click();if(window.innerWidth<=700)document.getElementById("sidebar").classList.remove("open");});});
-  // Cap cards
-  document.querySelectorAll(".cap").forEach(function(el){el.addEventListener("click",function(){if(this.dataset.voice)startVoice();else if(this.dataset.prompt)qp(this.dataset.prompt);});});
-  // Suggestion chips
-  document.querySelectorAll(".sc[data-qs]").forEach(function(el){el.addEventListener("click",function(){qs(this.dataset.qs);});});
-  document.getElementById("redobtn").addEventListener("click",regen);
-  // Panel close on outside click
-  document.querySelectorAll(".pov").forEach(function(el){el.addEventListener("click",function(e){if(e.target===this)this.classList.remove("on");});});
-  // Keyboard
-  document.addEventListener("keydown",function(e){if((e.ctrlKey||e.metaKey)&&e.key==="k"){e.preventDefault();document.getElementById("msgin").focus();}if(e.key==="Escape"){document.querySelectorAll(".pov.on").forEach(function(p){p.classList.remove("on");});if(document.getElementById("vov").classList.contains("on"))closeVoice();}});
-  // Check returning user
-  var saved;try{saved=localStorage.getItem("sx_u");}catch(e){}
-  if(saved){G.userName=saved;document.getElementById("gs").style.display="none";showBar(saved);bootApp();}
-});
 </script>
 </body>
 </html>
