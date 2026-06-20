@@ -651,9 +651,8 @@ async function sendMsg(){
         removeTyping(tid); var m = "\u26A0\uFEOF " + (err.message || "Something went wrong. Please try again."); addMsg("ai", m);
     }
     G.busy = false;
-          }
-  
 }
+  
 async function callGroq(){
   var pers={assistant:"You are My Synex, a highly intelligent AI assistant. Be helpful, precise, and thorough.",tutor:"You are My Synex, an expert tutor. Explain clearly with examples.",creative:"You are My Synex, a creative AI. Think imaginatively and use vivid language.",analyst:"You are My Synex, a sharp analyst. Be data-driven and structured.",coder:"You are My Synex, an elite programmer. Write clean, well-commented code."};
   var lens={concise:"Keep responses brief.",balanced:"Balance detail with brevity.",detailed:"Be comprehensive and detailed."};
