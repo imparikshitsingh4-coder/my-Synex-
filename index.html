@@ -613,7 +613,6 @@ async function sendMsg(){
         addMsg("user", esc(text).replace(/\n/g, "<br>")); clearInp();
         addMsg("ai", "🎨 Generating your image, please wait a few seconds...");
         
-        // Correctly target the text area inside the very last AI block your template made
         var allAiContainers = document.querySelectorAll(".ca .mw.-role-.fi");
         var lastContainer = allAiContainers[allAiContainers.length - 1];
         
@@ -624,7 +623,6 @@ async function sendMsg(){
         img.src = imageUrl;
         img.onload = function() {
             if(lastContainer) {
-                // Target the message text bubble inside your custom structure
                 var textDiv = lastContainer.querySelector(".nb");
                 if(textDiv) {
                     textDiv.innerHTML = '<div style="margin-top:8px; border-radius:12px; overflow:hidden; box-shadow:0 4px 15px rgba(0,0,0,0.3);"><img src="' + imageUrl + '" style="width:100%; height:auto; display:block;" /><div style="background:rgba(255,255,255,0.05); padding:8px 12px; font-size:0.85rem; color:#aaa;"><strong>Prompt:</strong> ' + esc(prompt) + '</div></div>';
@@ -638,7 +636,11 @@ async function sendMsg(){
             }
         };
         return; 
-      }
+    }
+
+    // --- Standard Text Chat Path (Fully Restored) ---
+    hideEmpty(); showSc();
+    addMsg("user", esc(text).replace(/\n/g, "<br>")); clearInp();
 
     var title = text.slice(0, 42); if (!G.convId) startConv(title);
     G.msgs.push({ role: "user", content: text });
@@ -649,7 +651,7 @@ async function sendMsg(){
         removeTyping(tid); var m = "\u26A0\uFEOF " + (err.message || "Something went wrong. Please try again."); addMsg("ai", m);
     }
     G.busy = false;
-      
+          }
   
 }
 async function callGroq(){
