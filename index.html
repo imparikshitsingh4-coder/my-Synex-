@@ -605,7 +605,7 @@ function handleFiles(inp){Array.from(inp.files).forEach(function(f){G.atts.push(
 
 async function sendMsg(){
     var inp=document.getElementById("msgin"); var text=inp.value.trim(); if(!text||G.busy)return;
-    
+
     // --- Advanced Image Generator Interceptor ---
     if (text.startsWith('/image ')) {
         var prompt = text.replace('/image ', '');
@@ -613,7 +613,6 @@ async function sendMsg(){
         addMsg("user", esc(text).replace(/\n/g, "<br>")); clearInp();
         addMsg("ai", "🎨 Generating your image, please wait a few seconds...");
         
-        // Target the AI bubble that was just created
         var lastAiMsg = document.querySelector(".ca div:last-child"); 
         var encodedPrompt = encodeURIComponent(prompt);
         var imageUrl = "https://image.pollinations.ai/p/" + encodedPrompt + "?width=1024&height=1024&nologo=true&seed=" + Math.floor(Math.random() * 100000);
@@ -622,25 +621,30 @@ async function sendMsg(){
         img.src = imageUrl;
         img.onload = function() {
             if(lastAiMsg) {
-                // Inserts a premium image card into the chat area
                 lastAiMsg.innerHTML = '<div style="margin-top: 8px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.3);"><img src="' + imageUrl + '" style="width: 100%; height: auto; display: block;" /><div style="background: rgba(255,255,255,0.05); padding: 8px 12px; font-size: 0.85rem; color: #aaa;"><strong>Prompt:</strong> ' + esc(prompt) + '</div></div>';
             }
         };
         img.onerror = function() {
             if(lastAiMsg) lastAiMsg.innerText = "❌ Failed to generate image. Try again!";
         };
-        return; // Prevents the text from being sent to Groq
+        return; 
     }
 
-    
-    var title=text.slice(0,42); // This is where line 610 continues...
-   
-  G.msgs.push({role:"user",content:text});clearInp();
-  var title=text.slice(0,42);if(!G.convId)startConv(title);document.getElementById("tbtit").textContent=title;
-  var tid=showTyping();G.busy=true;
-  try{var reply=await callGroq();removeTyping(tid);addMsg("ai",fmt(reply),reply);G.msgs.push({role:"assistant",content:reply});saveConv(title);speak(reply);}
-  catch(err){removeTyping(tid);var m="\u26A0\uFE0F "+(err.message||"Something went wrong. Please try again.");addMsg("ai",m,m);}
-  G.busy=false;
+    // --- Standard Text Chat Path (Fixed!) ---
+    hideEmpty(); showSc();
+    addMsg("user", esc(text).replace(/\n/g, "<br>")); clearInp();
+
+    var title=text.slice(0,42); if(!G.convId)startConv(title);
+    G.msgs.push({role:"user", content:text});
+    var tid=showTyping(); G.busy=true;
+    try {
+        var reply=await callGroq(); removeTyping(tid); addMsg("ai", fmt(reply), reply); G.msgs.push({role:"assistant", content:reply});
+    } catch(err) {
+        removeTyping(tid); var m="\u26A0\uFEOF "+(err.message||"Something went wrong. Please try again."); addMsg("ai", m);
+    }
+    G.busy=false;
+}
+  
 }
 async function callGroq(){
   var pers={assistant:"You are My Synex, a highly intelligent AI assistant. Be helpful, precise, and thorough.",tutor:"You are My Synex, an expert tutor. Explain clearly with examples.",creative:"You are My Synex, a creative AI. Think imaginatively and use vivid language.",analyst:"You are My Synex, a sharp analyst. Be data-driven and structured.",coder:"You are My Synex, an elite programmer. Write clean, well-commented code."};
