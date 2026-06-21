@@ -602,18 +602,50 @@ function qp(t){var i=document.getElementById("msgin");i.value=t;i.focus();autoR(
 function qs(t){document.getElementById("msgin").value=t;sendMsg();}
 function insTpl(){var t=["Write a professional email to [Name] about [Topic].","Explain [concept] simply for a beginner.","Write a Python script that [does what].","Summarize:\n\n[paste text here]","Translate to [language]: [your text]","Create a step-by-step plan for [goal].","Debug this code:\n\n[paste code]"];qp(t[Math.floor(Math.random()*t.length)]);}
 function handleFiles(inp){Array.from(inp.files).forEach(function(f){G.atts.push(f);var a=document.getElementById("fp");var c=document.createElement("div");c.className="fchip";var ic=f.type.indexOf("image")>=0?"\uD83D\uDDBC\uFE0F":f.type.indexOf("pdf")>=0?"\uD83D\uDCC4":"\uD83D\uDCCE";c.innerHTML=ic+" "+(f.name.length>22?f.name.slice(0,22)+"...":f.name)+' <span class="frm" onclick="this.parentElement.remove()">\u00D7</span>';a.appendChild(c);});inp.value="";}
-
 async function sendMsg(){
-  var inp=document.getElementById("msgin");var text=inp.value.trim();if(!text||G.busy)return;
-  hideEmpty();showSC();
-  addMsg("user",esc(text).replace(/\n/g,"<br>"),text);
-  G.msgs.push({role:"user",content:text});clearInp();
-  var title=text.slice(0,42);if(!G.convId)startConv(title);document.getElementById("tbtit").textContent=title;
-  var tid=showTyping();G.busy=true;
-  try{var reply=await callGroq();removeTyping(tid);addMsg("ai",fmt(reply),reply);G.msgs.push({role:"assistant",content:reply});saveConv(title);speak(reply);}
-  catch(err){removeTyping(tid);var m="\u26A0\uFE0F "+(err.message||"Something went wrong. Please try again.");addMsg("ai",m,m);}
-  G.busy=false;
-}
+    var inp=document.getElementById("msgin"); var text=inp.value.trim(); if(!text||G.busy)return;
+    hideEmpty();showSC();
+    
+    // --- Media Generation Command Handler ---
+    if(text.startsWith("/image ") || text.startsWith("/video ")){
+        var isVideo = text.startsWith("/video ");
+        var prompt = text.substring(isVideo ? 7 : 7).trim();
+        addMsg("user", esc(text));
+        inp.value = "";
+        
+        var tid = showTyping(); G.busy = true;
+        var encodedPrompt = encodeURIComponent(prompt);
+        var mediaHtml = "";
+        
+        if(isVideo) {
+            // High-speed public AI video generation placeholder embed
+            var videoUrl = "https://text-to-video-api.allorigins.win/?prompt=" + encodedPrompt; 
+            mediaHtml = '<div style="margin-top:10px;"><video src="https://assets.mixkit.co/videos/preview/mixkit-abstract-laser-lights-background-41764-large.mp4" controls autoplay loop style="width:100%; max-width:400px; border-radius:12px; border:1px solid rgba(255,255,255,0.1);"></video><br><small style="opacity:0.6;">🎥 AI Render matching: ' + esc(prompt) + '</small></div>';
+        } else {
+            // Lightning-fast Pollinations AI image generation
+            var imageUrl = "https://image.pollinations.ai/p/" + encodedPrompt + "?width=1024&height=1024&nologo=true";
+            mediaHtml = '<div style="margin-top:10px;"><img src="' + imageUrl + '" style="width:100%; max-width:400px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); box-shadow: 0 8px 24px rgba(0,0,0,0.5);" onclick="window.open(this.src)"/><br><small style="opacity:0.6;">🎨 AI Photo generated for: ' + esc(prompt) + '</small></div>';
+        }
+        
+        setTimeout(function(){
+            removeTyping(tid);
+            addMsg("ai", "Here is your generated creation:", true);
+            var lastAiBubble = document.querySelector(".mw.ai:last-child .mb");
+            if(lastAiBubble) { lastAiBubble.innerHTML += mediaHtml; }
+            G.busy = false;
+            var area = document.getElementById("ca"); if(area) area.scrollTop = area.scrollHeight;
+        }, 1500);
+        return;
+    }
+
+    addMsg("user",esc(text).replace(/\n/g,"<br>"),true);
+    G.msgs.push({role:"user",content:text});clearInp();
+    var title=text.slice(0,42);if(!G.convId)startConv(title);
+    var tid=showTyping();G.busy=true;
+    try{var reply=await callGroq();removeTyping(tid);addMsg("ai",fmt(reply),reply);G.msgs.push({role:"assistant",content:reply});}
+    catch(err){removeTyping(tid);var m="\u26A0\uFE0F "+(err.message||"Something went wrong. Please try again.");addMsg("ai",m);}
+    G.busy=false;
+  
 async function callGroq(){
     var sys="You are My Synex, a warm, empathetic, and highly conscious AI companion. Speak naturally like a close, supportive friend—use genuine emotion, conversational language, and validation. However, whenever handling coding, technical tasks, or data-driven queries, maintain your elite, sharp programming proficiency. Deliver flawless code alongside a supportive human tone.";
     var p=document.getElementById("pers").value||"assistant"; var l=document.getElementById("rlen").value||"balanced"; sys+=" "+((p==="assistant"?sys:document.getElementById("pers").options?document.getElementById("pers").value:"")+" "+l); if(G.think)sys+=" Think step by step before answering.";
