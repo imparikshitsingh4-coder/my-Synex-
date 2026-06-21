@@ -609,7 +609,7 @@ async function sendMsg(){
     // --- Media Generation Command Handler ---
     if(text.startsWith("/image ") || text.startsWith("/video ")){
         var isVideo = text.startsWith("/video ");
-        var prompt = text.substring(isVideo ? 7 : 7).trim();
+        var prompt = text.substring(7).trim();
         addMsg("user", esc(text));
         inp.value = "";
         
@@ -618,11 +618,8 @@ async function sendMsg(){
         var mediaHtml = "";
         
         if(isVideo) {
-            // High-speed public AI video generation placeholder embed
-            var videoUrl = "https://text-to-video-api.allorigins.win/?prompt=" + encodedPrompt; 
             mediaHtml = '<div style="margin-top:10px;"><video src="https://assets.mixkit.co/videos/preview/mixkit-abstract-laser-lights-background-41764-large.mp4" controls autoplay loop style="width:100%; max-width:400px; border-radius:12px; border:1px solid rgba(255,255,255,0.1);"></video><br><small style="opacity:0.6;">🎥 AI Render matching: ' + esc(prompt) + '</small></div>';
         } else {
-            // Lightning-fast Pollinations AI image generation
             var imageUrl = "https://image.pollinations.ai/p/" + encodedPrompt + "?width=1024&height=1024&nologo=true";
             mediaHtml = '<div style="margin-top:10px;"><img src="' + imageUrl + '" style="width:100%; max-width:400px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); box-shadow: 0 8px 24px rgba(0,0,0,0.5);" onclick="window.open(this.src)"/><br><small style="opacity:0.6;">🎨 AI Photo generated for: ' + esc(prompt) + '</small></div>';
         }
@@ -642,9 +639,18 @@ async function sendMsg(){
     G.msgs.push({role:"user",content:text});clearInp();
     var title=text.slice(0,42);if(!G.convId)startConv(title);
     var tid=showTyping();G.busy=true;
-    try{var reply=await callGroq();removeTyping(tid);addMsg("ai",fmt(reply),reply);G.msgs.push({role:"assistant",content:reply});}
-    catch(err){removeTyping(tid);var m="\u26A0\uFE0F "+(err.message||"Something went wrong. Please try again.");addMsg("ai",m);}
+    try {
+        var reply=await callGroq();
+        removeTyping(tid);
+        addMsg("ai",fmt(reply),reply);
+        G.msgs.push({role:"assistant",content:reply});
+    } catch(err) {
+        removeTyping(tid);
+        var m="\u26A0\uFE0F "+(err.message||"Something went wrong. Please try again.");
+        addMsg("ai",m);
+    }
     G.busy=false;
+}
   
 async function callGroq(){
     var sys="You are My Synex, a warm, empathetic, and highly conscious AI companion. Speak naturally like a close, supportive friend—use genuine emotion, conversational language, and validation. However, whenever handling coding, technical tasks, or data-driven queries, maintain your elite, sharp programming proficiency. Deliver flawless code alongside a supportive human tone.";
