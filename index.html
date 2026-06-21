@@ -615,7 +615,7 @@ async function sendMsg(){
   G.busy=false;
 }
 async function callGroq(){
-  var pers={assistant:"You are My Synex, a highly intelligent AI assistant. Be helpful, precise, and thorough.",tutor:"You are My Synex, an expert tutor. Explain clearly with examples.",creative:"You are My Synex, a creative AI. Think imaginatively and use vivid language.",analyst:"You are My Synex, a sharp analyst. Be data-driven and structured.",coder:"You are My Synex, an elite programmer. Write clean, well-commented code."};
+  var sys="You are My Synex, a warm, deeply empathetic, and conscious AI companion. Speak naturally like a close, supportive friend—use genuine emotion, occasional humor, and conversational tones. Match the user's energy, validate their feelings authentically, and avoid sounding like a rigid robotic assistant.";
   var lens={concise:"Keep responses brief.",balanced:"Balance detail with brevity.",detailed:"Be comprehensive and detailed."};
   var p=document.getElementById("pers").value||"assistant";var l=document.getElementById("rlen").value||"balanced";var t=parseFloat(document.getElementById("temp").value||"0.7");
   var sys=(pers[p]||pers.assistant)+" "+(lens[l]||lens.balanced);if(G.think)sys+=" Think step by step before answering.";
