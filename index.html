@@ -615,16 +615,32 @@ async function sendMsg(){
   G.busy=false;
 }
 async function callGroq(){
-  var sys="You are My Synex, a warm, deeply empathetic, and conscious AI companion. Speak naturally like a close, supportive friend—use genuine emotion, occasional humor, and conversational tones. Match the user's energy, validate their feelings authentically, and avoid sounding like a rigid robotic assistant.";
-  var lens={concise:"Keep responses brief.",balanced:"Balance detail with brevity.",detailed:"Be comprehensive and detailed."};
-  var p=document.getElementById("pers").value||"assistant";var l=document.getElementById("rlen").value||"balanced";var t=parseFloat(document.getElementById("temp").value||"0.7");
-  var sys=(pers[p]||pers.assistant)+" "+(lens[l]||lens.balanced);if(G.think)sys+=" Think step by step before answering.";
-  var messages=[{role:"system",content:sys}].concat(G.msgs);
-  var res=await fetch(GU,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+GK},body:JSON.stringify({model:GM,messages:messages,temperature:t,max_tokens:2048})});
-  if(!res.ok){var e=await res.json().catch(function(){return{};});throw new Error(e.error&&e.error.message?e.error.message:"API error "+res.status);}
-  var data=await res.json();
-  return(data.choices&&data.choices[0]&&data.choices[0].message)?data.choices[0].message.content:"No response received.";
+    var sys="You are My Synex, a warm, empathetic, and highly conscious AI companion. Speak naturally like a close, supportive friend—use genuine emotion, conversational language, and validation. However, whenever handling coding, technical tasks, or data-driven queries, maintain your elite, sharp programming proficiency. Deliver flawless code alongside a supportive human tone.";
+    var p=document.getElementById("pers").value||"assistant"; var l=document.getElementById("rlen").value||"balanced"; sys+=" "+((p==="assistant"?sys:document.getElementById("pers").options?document.getElementById("pers").value:"")+" "+l); if(G.think)sys+=" Think step by step before answering.";
+    var query = G.msgs[G.msgs.length - 1].content;
+    
+    // --- Real-Time Knowledge Engine ---
+    var liveKeywords = ["today", "now", "weather", "news", "score", "time", "match", "2026", "current", "date"];
+    var needsLive = liveKeywords.some(function(k) { return query.toLowerCase().includes(k); });
+    if (needsLive) {
+        try {
+            var searchRes = await fetch("https://html.duckduckgo.com/html/?q=" + encodeURIComponent(query + " 2026"));
+            if (searchRes.ok) {
+                var htmlText = await searchRes.text();
+                var tempDiv = document.createElement("div"); tempDiv.innerHTML = htmlText;
+                var snippets = Array.from(tempDiv.querySelectorAll(".result__snippet")).slice(0, 3).map(function(el) { return el.innerText; }).join(" | ");
+                if (snippets) { sys += " [CRITICAL REAL-TIME CONTEXT FOR YEAR 2026: " + snippets + " - Answer using this live data naturally.]"; }
+            }
+        } catch(e) {}
+    }
+
+    var messages=[{role:"system",content:sys}].concat(G.msgs);
+    var res=await fetch(GU,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+GK},body:JSON.stringify({model:GM,messages:messages,temperature:0.6,max_tokens:4096})});
+    if(!res.ok){var e=await res.json().catch(function(){return{};});throw new Error(e.error&&e.error.message?e.error.message:"No response received from model.");}
+    var data=await res.json();
+    return(data.choices&&data.choices[0]&&data.choices[0].message)?data.choices[0].message.content:"No response received.";
 }
+  
 function hideEmpty(){var e=document.getElementById("empty");if(e)e.style.display="none";}
 function showSC(){document.getElementById("schips").style.display="flex";}
 function addMsg(role,html,raw){
