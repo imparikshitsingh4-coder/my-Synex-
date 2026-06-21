@@ -624,12 +624,14 @@ async function callGroq(){
     var needsLive = liveKeywords.some(function(k) { return query.toLowerCase().includes(k); });
     if (needsLive) {
         try {
-            var searchRes = await fetch("https://api.allorigins.win/get?url=" + encodeURIComponent("https://html.duckduckgo.com/html/?q=" + encodeURIComponent(query + " 2026")));
+            var searchRes = await fetch("https://api.allorigins.win/get?url=" + encodeURIComponent("https://api.duckduckgo.com/?q=" + encodeURIComponent(query) + "&format=json&no_html=1"));
             if (searchRes.ok) {
                 var json = await searchRes.json();
-                var tempDiv = document.createElement("div"); tempDiv.innerHTML = json.contents;
-                var snippets = Array.from(tempDiv.querySelectorAll(".result__snippet")).slice(0, 3).map(function(el) { return el.innerText; }).join(" | ");
-                if (snippets) { sys += " [CRITICAL REAL-TIME CONTEXT FOR YEAR 2026: " + snippets + " - Use this live data to answer accurately.]"; }
+                var data = JSON.parse(json.contents);
+                var snippets = "";
+                if (data.AbstractText) { snippets = data.AbstractText; }
+                else if (data.RelatedTopics && data.RelatedTopics.length) { snippets = data.RelatedTopics.slice(0, 3).map(function(t) { return t.text; }).join(" | "); }
+                if (snippets) { sys += " [CRITICAL REAL-TIME CONTEXT: " + snippets + " - Use this live data to answer accurately.]"; }
             }
         } catch(e) {}
     }
