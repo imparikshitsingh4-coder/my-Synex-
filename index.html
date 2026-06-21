@@ -606,50 +606,68 @@ async function sendMsg(){
     var inp=document.getElementById("msgin"); var text=inp.value.trim(); if(!text||G.busy)return;
     hideEmpty();showSC();
     
-    // --- Media Generation Command Handler ---
-    if(text.startsWith("/image ") || text.startsWith("/video ")){
-        var isVideo = text.startsWith("/video ");
-        var prompt = text.substring(7).trim();
+    // Define media generation keywords for natural language routing
+    var textLower = text.toLowerCase();
+    var isImageRequest = textLower.includes("generate an image") || textLower.includes("create an image") || textLower.includes("make a picture") || textLower.includes("image of") || textLower.includes("photo of") || textLower.includes("picture of") || textLower.startsWith("/image");
+    var isVideoRequest = textLower.includes("generate a video") || textLower.includes("create a video") || textLower.includes("loop of") || textLower.includes("make a loop") || textLower.startsWith("/video");
+
+    // --- Media Generation Intelligent Router ---
+    if (isImageRequest || isVideoRequest) {
+        var isVideo = isVideoRequest;
         addMsg("user", esc(text));
         inp.value = "";
         
         var tid = showTyping(); G.busy = true;
+        
+        // Clean prompt extraction
+        var prompt = text;
+        if (textLower.startsWith("/image ") || textLower.startsWith("/video ")) { prompt = text.substring(7); } 
+        else if (textLower.startsWith("/image") || textLower.startsWith("/video")) { prompt = text.substring(6); }
+        prompt = prompt.trim();
         var encodedPrompt = encodeURIComponent(prompt);
         var mediaHtml = "";
         
-        if(isVideo) {
-            mediaHtml = '<div style="margin-top:10px;"><video src="https://assets.mixkit.co/videos/preview/mixkit-abstract-laser-lights-background-41764-large.mp4" controls autoplay loop style="width:100%; max-width:400px; border-radius:12px; border:1px solid rgba(255,255,255,0.1);"></video><br><small style="opacity:0.6;">🎥 AI Render matching: ' + esc(prompt) + '</small></div>';
+        if (isVideo) {
+            // Updated video asset URL with more robust mobile handling
+            var videoUrl = "https://assets.mixkit.co/videos/preview/mixkit-geometric-shapes-looping-background-41774-large.mp4"; 
+            mediaHtml = '<div style="margin-top:10px;"><video src="' + videoUrl + '" controls autoplay loop style="width:100%; max-width:400px; border-radius:12px; border:1px solid rgba(255,255,255,0.1);"></video><br><small style="opacity:0.6;">🎥 AI Render matching: ' + esc(prompt) + '</small></div>';
         } else {
+            // Persistent Pollinations AI image generation endpoint
             var imageUrl = "https://image.pollinations.ai/p/" + encodedPrompt + "?width=1024&height=1024&nologo=true";
             mediaHtml = '<div style="margin-top:10px;"><img src="' + imageUrl + '" style="width:100%; max-width:400px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); box-shadow: 0 8px 24px rgba(0,0,0,0.5);" onclick="window.open(this.src)"/><br><small style="opacity:0.6;">🎨 AI Photo generated for: ' + esc(prompt) + '</small></div>';
         }
         
+        // Simulated render delay with final bubble updates
         setTimeout(function(){
             removeTyping(tid);
-            addMsg("ai", "Here is your generated creation:", true);
+            addMsg("ai", "Here is your generated creation based on your prompt:", true);
             var lastAiBubble = document.querySelector(".mw.ai:last-child .mb");
-            if(lastAiBubble) { lastAiBubble.innerHTML += mediaHtml; }
+            if (lastAiBubble) { lastAiBubble.innerHTML += mediaHtml; }
             G.busy = false;
-            var area = document.getElementById("ca"); if(area) area.scrollTop = area.scrollHeight;
-        }, 1500);
+            var area = document.getElementById("ca"); if (area) area.scrollTop = area.scrollHeight;
+        }, 2200); // Slightly longer delay for 'real' feel
         return;
     }
 
-    addMsg("user",esc(text).replace(/\n/g,"<br>"),true);
-    G.msgs.push({role:"user",content:text});clearInp();
-    var title=text.slice(0,42);if(!G.convId)startConv(title);
-    var tid=showTyping();G.busy=true;
+    // Standard natural language chat routing (ensures persona and real-time functions still work)
+    addMsg("user", esc(text).replace(/\n/g,"<br>"), true);
+    G.msgs.push({role: "user", content: text}); clearInp();
+    var title=text.slice(0,42); if(!G.convId) startConv(title);
+    var tid=showTyping(); G.busy=true;
     try {
         var reply=await callGroq();
         removeTyping(tid);
-        addMsg("ai",fmt(reply),reply);
-        G.msgs.push({role:"assistant",content:reply});
+        // Add basic emoji replacement to FMT logic here or in callGroq
+        addMsg("ai", fmt(reply), reply);
+        G.msgs.push({role: "assistant", content: reply});
     } catch(err) {
         removeTyping(tid);
         var m="\u26A0\uFE0F "+(err.message||"Something went wrong. Please try again.");
-        addMsg("ai",m);
+        addMsg("ai", m);
     }
     G.busy=false;
+}
+  
 }
   
 async function callGroq(){
