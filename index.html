@@ -607,8 +607,6 @@ async function sendMsg(){
     hideEmpty();showSC();
     
     // Define media generation keywords for natural language routing
-        // Define media generation keywords for natural language routing
-        // Define media generation keywords for natural language routing
     var textLower = text.toLowerCase();
     var isImageRequest = textLower.includes("generate an image") || textLower.includes("create an image") || textLower.includes("make a picture") || textLower.includes("image of") || textLower.includes("photo of") || textLower.includes("picture of") || textLower.startsWith("/image");
     var isVideoRequest = textLower.includes("generate a video") || textLower.includes("create a video") || textLower.includes("loop of") || textLower.includes("make a loop") || textLower.startsWith("/video");
@@ -631,64 +629,30 @@ async function sendMsg(){
         
         if (isVideo) {
             var videoUrl = "https://assets.mixkit.co/videos/preview/mixkit-geometric-shapes-looping-background-41774-large.mp4"; 
-            mediaHtml = '<div style="margin-top:10px;"><video src="' + videoUrl + '" controls autoplay loop style="width:100%; max-width:400px; border-radius:12px; border:1px solid rgba(255,255,255,0.1);"></video><br><small style="opacity:0.6;">🎥 AI Render matching: ' + esc(prompt) + '</small></div>';
+            mediaHtml = '<div style="margin-top:10px;"><video src="' + videoUrl + '" controls autoplay loop style="width:100%; max-width:400px; border-radius:12px; border:1px solid rgba(255,255,255,0.1);"></video><br><small style="opacity:0.6;">🎥 AI Video: ' + esc(prompt) + '</small></div>';
         } else {
             var imageUrl = "https://image.pollinations.ai/p/" + encodedPrompt + "?width=1024&height=1024&nologo=true";
-            mediaHtml = '<div style="margin-top:10px;"><a href="' + imageUrl + '" target="_blank" style="display:block;"><img src="' + imageUrl + '" style="width:100%; max-width:400px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); box-shadow: 0 8px 24px rgba(0,0,0,0.5); cursor:pointer;" /></a><br><small style="opacity:0.6;">🎨 AI Photo generated for: ' + esc(prompt) + '</small></div>';
+            mediaHtml = '<div style="margin-top:10px;"><a href="' + imageUrl + '" target="_blank" style="display:block;"><img src="' + imageUrl + '" style="width:100%; max-width:400px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); box-shadow: 0 8px 24px rgba(0,0,0,0.5); cursor:pointer;" /></a><br><small style="opacity:0.6;">🎨 AI Photo: ' + esc(prompt) + '</small></div>';
         }
         
         setTimeout(function(){
             removeTyping(tid);
-            // Passing mediaHtml straight into addMsg lets your app build the avatar layout naturally
-            addMsg("ai", "Here is your generated creation based on your prompt:<br>" + mediaHtml, true);
+            // Passing mediaHtml straight through your native addMsg creates the bubble with your logo automatically
+            addMsg("ai", "Here is your generation:<br>" + mediaHtml, text);
             G.busy = false;
             var area = document.getElementById("ca"); if (area) area.scrollTop = area.scrollHeight;
         }, 2200);
-        return;
-              setTimeout(function(){
-            removeTyping(tid);
-            addMsg("ai", "Here is your generated creation based on your prompt:<br>" + mediaHtml, true);
-            G.busy = false;
-            var area = document.getElementById("ca"); if (area) area.scrollTop = area.scrollHeight;
-        }, 2200);
-        return;
+        return; // Stops standard chat text from running over your media asset
     }
 
-    // Standard natural language chat routing (ensures persona and real-time functions still work)
+    // Standard natural language chat routing
     addMsg("user", esc(text).replace(/\n/g,"<br>"), true);
-  
-    
-        
-        var tid = showTyping(); G.busy = true;
-        
-        // Clean prompt extraction
-        var prompt = text;
-        if (textLower.startsWith("/image ") || textLower.startsWith("/video ")) { prompt = text.substring(7); } 
-        else if (textLower.startsWith("/image") || textLower.startsWith("/video")) { prompt = text.substring(6); }
-        prompt = prompt.trim();
-        var encodedPrompt = encodeURIComponent(prompt);
-        var mediaHtml = "";
-        
-        if (isVideo) {
-            var videoUrl = "https://assets.mixkit.co/videos/preview/mixkit-geometric-shapes-looping-background-41774-large.mp4"; 
-            mediaHtml = '<div style="margin-top:10px;"><video src="' + videoUrl + '" controls autoplay loop style="width:100%; max-width:400px; border-radius:12px; border:1px solid rgba(255,255,255,0.1);"></video><br><small style="opacity:0.6;">🎥 AI Render matching: ' + esc(prompt) + '</small></div>';
-        } else {
-            var imageUrl = "https://image.pollinations.ai/p/" + encodedPrompt + "?width=1024&height=1024&nologo=true";
-            mediaHtml = '<div style="margin-top:10px;"><a href="' + imageUrl + '" target="_blank" style="display:block;"><img src="' + imageUrl + '" style="width:100%; max-width:400px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); box-shadow: 0 8px 24px rgba(0,0,0,0.5); cursor:pointer;" /></a><br><small style="opacity:0.6;">🎨 AI Photo generated for: ' + esc(prompt) + '</small></div>';
-        }
-        
-        setTimeout(function(){
-            removeTyping(tid);
-            // Passing mediaHtml straight into addMsg lets your app build the avatar layout naturally
-            addMsg("ai", "Here is your generated creation based on your prompt:<br>" + mediaHtml, true);
-            G.busy = false;
-            var area = document.getElementById("ca"); if (area) area.scrollTop = area.scrollHeight;
-        }, 2200);
-        return;
-    }
-  
+    G.msgs.push({role: "user", content: text}); clearInp();
+    var title=text.slice(0,42); if(!G.convId) startConv(title);
+    var tid=showTyping(); G.busy=true;
+    try {
+        var reply=await callGroq();
         removeTyping(tid);
-        // Add basic emoji replacement to FMT logic here or in callGroq
         addMsg("ai", fmt(reply), reply);
         G.msgs.push({role: "assistant", content: reply});
     } catch(err) {
@@ -697,8 +661,6 @@ async function sendMsg(){
         addMsg("ai", m);
     }
     G.busy=false;
-}
-  
 }
   
 async function callGroq(){
