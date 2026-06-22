@@ -608,6 +608,7 @@ async function sendMsg(){
     
     // Define media generation keywords for natural language routing
         // Define media generation keywords for natural language routing
+        // Define media generation keywords for natural language routing
     var textLower = text.toLowerCase();
     var isImageRequest = textLower.includes("generate an image") || textLower.includes("create an image") || textLower.includes("make a picture") || textLower.includes("image of") || textLower.includes("photo of") || textLower.includes("picture of") || textLower.startsWith("/image");
     var isVideoRequest = textLower.includes("generate a video") || textLower.includes("create a video") || textLower.includes("loop of") || textLower.includes("make a loop") || textLower.startsWith("/video");
@@ -644,17 +645,19 @@ async function sendMsg(){
             var area = document.getElementById("ca"); if (area) area.scrollTop = area.scrollHeight;
         }, 2200);
         return;
+              setTimeout(function(){
+            removeTyping(tid);
+            addMsg("ai", "Here is your generated creation based on your prompt:<br>" + mediaHtml, true);
+            G.busy = false;
+            var area = document.getElementById("ca"); if (area) area.scrollTop = area.scrollHeight;
+        }, 2200);
+        return;
     }
-      // Define media generation keywords for natural language routing
-    var textLower = text.toLowerCase();
-    var isImageRequest = textLower.includes("generate an image") || textLower.includes("create an image") || textLower.includes("make a picture") || textLower.includes("image of") || textLower.includes("photo of") || textLower.includes("picture of") || textLower.startsWith("/image");
-    var isVideoRequest = textLower.includes("generate a video") || textLower.includes("create a video") || textLower.includes("loop of") || textLower.includes("make a loop") || textLower.startsWith("/video");
 
-    // --- Media Generation Intelligent Router ---
-    if (isImageRequest || isVideoRequest) {
-        var isVideo = isVideoRequest;
-        addMsg("user", esc(text));
-        inp.value = "";
+    // Standard natural language chat routing (ensures persona and real-time functions still work)
+    addMsg("user", esc(text).replace(/\n/g,"<br>"), true);
+  
+    
         
         var tid = showTyping(); G.busy = true;
         
