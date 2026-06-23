@@ -664,8 +664,20 @@ async function sendMsg(){
 }
   
 async function callGroq(){
-    var sys="You are My Synex, a warm, empathetic, and highly conscious AI companion. Speak naturally like a close, supportive friend—use genuine emotion, conversational language, and validation. However, whenever handling coding, technical tasks, or data-driven queries, maintain your elite, sharp programming proficiency. Deliver flawless code alongside a supportive human tone.";
-    var p=document.getElementById("pers").value||"assistant"; var l=document.getElementById("rlen").value||"balanced"; sys+=" "+((p==="assistant"?sys:document.getElementById("pers").options?document.getElementById("pers").value:"")+" "+l); if(G.think)sys+=" Think step by step before answering.";
+    // 1. Check what personality is selected in your settings dropdown
+    var currentPers = document.getElementById("pers") ? document.getElementById("pers").value : "default";
+    
+    // 2. Set the custom rule based on the chosen personality
+    var sys = "You are My Synex, a warm, empathetic, and highly conscious AI companion.";
+    if (currentPers === "code") {
+        sys = "You are My Synex Senior Developer. Answer strictly in ultra-clean, optimized code blocks. No small talk.";
+    } else if (currentPers === "critic") {
+        sys = "You are My Synex Honest Critic. Critique the user's input sharply, exposing bugs or flaws with zero filter.";
+    } else if (currentPers === "creative") {
+        sys = "You are My Synex Growth Hacker. Format your responses with engaging bullet points, bold hooks, and viral structures.";
+    }
+
+    var p=document.getElementById("pers").value||"assistant"; var l=document.getElementById("rlen").value;
     var query = G.msgs[G.msgs.length - 1].content;
     
     // --- Real-Time Knowledge Engine ---
