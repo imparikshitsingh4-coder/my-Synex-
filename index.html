@@ -651,11 +651,40 @@ async function sendMsg(){
     var title=text.slice(0,42); if(!G.convId) startConv(title);
     var tid=showTyping(); G.busy=true;
     try {
-        var reply=await callGroq();
-        removeTyping(tid);
-        addMsg("ai", fmt(reply), reply);
-        G.msgs.push({role: "assistant", content: reply});
-    } catch(err) {
+                    var reply=await callGroq();
+            removeTyping(tid);
+            addMsg("ai", fmt(reply), reply);
+            G.msgs.push({role: "assistant", content: reply});
+
+            // --- SMART SUGGESTION CHIPS ---
+            var chipArea = document.getElementById("schips");
+            if (chipArea) {
+                chipArea.style.display = "flex";
+                if (reply.includes("```")) {
+                    chipArea.innerHTML = `
+                        <span class="sc" data-qs="Explain this code line by line">Line Explanation</span>
+                        <span class="sc" data-qs="Optimize this code for speed">Optimize Code</span>
+                        <span class="sc" data-qs="Find potential bugs in this code">Find Bugs</span>
+                    `;
+                } else {
+                    chipArea.innerHTML = `
+                        <span class="sc" data-qs="Give me a practical example of this">Give Example</span>
+                        <span class="sc" data-qs="Explain this simpler">Make Simpler</span>
+                        <span class="sc" data-qs="Summarize the key points">Summarize</span>
+                    `;
+                }
+                chipArea.querySelectorAll(".sc").forEach(function(el) {
+                    el.addEventListener("click", function() {
+                        var msgInput = document.getElementById("msgin");
+                        if (msgInput) {
+                            msgInput.value = el.getAttribute("data-qs");
+                            sendMsg();
+                        }
+                    });
+                });
+            }
+        } catch(err) {
+      
         removeTyping(tid);
         var m="\u26A0\uFE0F "+(err.message||"Something went wrong. Please try again.");
         addMsg("ai", m);
