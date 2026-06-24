@@ -659,8 +659,8 @@ function handleFiles(inp){Array.from(inp.files).forEach(function(f){G.atts.push(
 async function sendMsg(){
     var inp=document.getElementById("msgin"); var text=inp.value.trim(); if(!text||G.busy)return;
     hideEmpty();showSC();
-              // --- MIND-READER ENGINE INSTANT INJECTION ---
-    if (typeof text !== 'undefined' && text && preFetchedReply && text === preFetchedPrompt) {
+                  // --- MIND-READER ENGINE INSTANT INJECTION ---
+    if (typeof text !== 'undefined' && text && typeof preFetchedReply !== 'undefined' && preFetchedReply && text === preFetchedPrompt) {
         var tid = showTyping();
         setTimeout(function() {
             removeTyping(tid);
@@ -675,27 +675,6 @@ async function sendMsg(){
             if (area) area.scrollTo({ top: area.scrollHeight, behavior: 'smooth' });
         }, 100);
         return; // Bypasses server routine completely!
-    }
-  
-    // Safety Guard: Agar chat input khali hai (jaise starting onboarding screen par), toh bypass skip karo
-    if (currentInput && preFetchedReply && currentInput === preFetchedPrompt) {
-        var tid = showTyping();
-        setTimeout(function() {
-            removeTyping(tid);
-            addMsg("ai", fmt(preFetchedReply), preFetchedReply);
-            G.msgs.push({role: "user", content: currentInput});
-            G.msgs.push({role: "assistant", content: preFetchedReply});
-            
-            // Clear inputs and cache
-            var msgInEl = document.getElementById("msgin");
-            if(msgInEl) msgInEl.value = "";
-            preFetchedReply = null;
-            
-            // Trigger Smart Scroll
-            var area = document.getElementById("ca");
-            if (area) area.scrollTo({ top: area.scrollHeight, behavior: 'smooth' });
-        }, 100);
-        return; // Server routing completely bypass!
     }
     
     // Define media generation keywords for natural language routing
@@ -750,10 +729,12 @@ async function sendMsg(){
             var memoryCount = G.msgs.length;
             topBarTitle.innerHTML = 'My Synex <button class="neural-toggle-btn" onclick="toggleNeuralMap()">🧠 Matrix Map: ' + memoryCount + ' nodes</button>';
         }
-  
-      // --- SMART CONTEXT-AWARE AUTO-SCROLL ---
-    var area = document.getElementById("ca");
-    if (area) {
+          // --- REAL-TIME MEMORY HUD WITH MATRIX TOGGLE ---
+        var topBarTitle = document.querySelector(".tbtit");
+        if (topBarTitle) {
+            var memoryCount = G.msgs.length;
+            topBarTitle.innerHTML = 'My Synex <button class="neural-toggle-btn" onclick="toggleNeuralMap()">🧠 Matrix Map: ' + memoryCount + ' nodes</button>';
+        }
         var isUserAtBottom = (area.scrollHeight - area.scrollTop - area.clientHeight) <= 150;
         if (isUserAtBottom) {
             setTimeout(function() {
