@@ -658,11 +658,13 @@ function insTpl(){var t=["Write a professional email to [Name] about [Topic].","
 function handleFiles(inp){Array.from(inp.files).forEach(function(f){G.atts.push(f);var a=document.getElementById("fp");var c=document.createElement("div");c.className="fchip";var ic=f.type.indexOf("image")>=0?"\uD83D\uDDBC\uFE0F":f.type.indexOf("pdf")>=0?"\uD83D\uDCC4":"\uD83D\uDCCE";c.innerHTML=ic+" "+(f.name.length>22?f.name.slice(0,22)+"...":f.name)+' <span class="frm" onclick="this.parentElement.remove()">\u00D7</span>';a.appendChild(c);});inp.value="";}
 async function sendMsg() {
     var inp = document.getElementById("msgin");
-    // Secure Fallback: If we're on the onboarding screen, let the text pass through safely
     var text = inp ? inp.value.trim() : "";
     
+    // Onboarding Panel Guard: If the onboarding element is active, let it pass through!
+    var onboardingActive = document.getElementById("gs") && document.getElementById("gs").style.display !== "none";
+
     // --- MIND-READER ENGINE INSTANT INJECTION ---
-    if (text && typeof preFetchedReply !== 'undefined' && preFetchedReply && text === preFetchedPrompt) {
+    if (!onboardingActive && text && typeof preFetchedReply !== 'undefined' && preFetchedReply && text === preFetchedPrompt) {
         var tid = showTyping();
         setTimeout(function() {
             removeTyping(tid);
@@ -679,29 +681,14 @@ async function sendMsg() {
         return; // Bypasses server routine completely!
     }
 
-    // Standard guard for normal chat entries
-    if (inp && !text && !document.getElementById("gs")) return; 
-    if (G.busy) return;
+    // Standard chat empty guard: Skip this check if we are on the login screen
+    if (!onboardingActive) {
+        if (!text || G.busy) return;
+    }
 
     hideEmpty();
     showSC();
-        
-        if (isVideo) {
-            var videoUrl = "https://assets.mixkit.co/videos/preview/mixkit-geometric-shapes-looping-background-41774-large.mp4"; 
-            mediaHtml = '<div style="margin-top:10px;"><video src="' + videoUrl + '" controls autoplay loop style="width:100%; max-width:400px; border-radius:12px; border:1px solid rgba(255,255,255,0.1);"></video><br><small style="opacity:0.6;">🎥 AI Video: ' + esc(prompt) + '</small></div>';
-        } else {
-            var imageUrl = "https://image.pollinations.ai/p/" + encodedPrompt + "?width=1024&height=1024&nologo=true";
-            mediaHtml = '<div style="margin-top:10px;"><a href="' + imageUrl + '" target="_blank" style="display:block;"><img src="' + imageUrl + '" style="width:100%; max-width:400px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); box-shadow: 0 8px 24px rgba(0,0,0,0.5); cursor:pointer;" /></a><br><small style="opacity:0.6;">🎨 AI Photo: ' + esc(prompt) + '</small></div>';
-        }
-        
-        setTimeout(function(){
-            removeTyping(tid);
-            // Passing mediaHtml straight through your native addMsg creates the bubble with your logo automatically
-            addMsg("ai", "Here is your generation:<br>" + mediaHtml, text);
-            G.busy = false;
-                   // --- SMART CONTEXT-AWARE AUTO-SCROLL ---
-        var area = document.getElementById("ca");
-        if (area) {
+  
             var isUserAtBottom = (area.scrollHeight - area.scrollTop - area.clientHeight) <= 150;
             if (isUserAtBottom) {
                 area.scrollTo({ top: area.scrollHeight, behavior: 'smooth' });
