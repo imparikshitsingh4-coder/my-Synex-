@@ -718,35 +718,29 @@ async function sendMsg() {
         }
       }
   
-        try {
-        var reply=await callGroq();
+            try {
+        var reply = await callGroq();
         removeTyping(tid);
         addMsg("ai", fmt(reply), reply);
-        G.msgs.push({role: "assistant", content: reply});
-        // --- REAL-TIME MEMORY HUD WITH MATRIX TOGGLE ---
+        G.msgs.push({ role: "assistant", content: reply });
+
+        // --- REAL-TIME MEMORY HUD ---
         var topBarTitle = document.querySelector(".tbtit");
         if (topBarTitle) {
-            var memoryCount = G.msgs.length;
-            topBarTitle.innerHTML = "My Synex Matrix: " + memoryCount;
+            topBarTitle.innerHTML = "My Synex Matrix: " + G.msgs.length;
         }
-          
+
         // --- SMART SUGGESTION CHIPS ---
         var chipArea = document.getElementById("schips");
         if (chipArea) {
             chipArea.style.display = "flex";
             if (reply.includes("```")) {
-                chipArea.innerHTML = `
-                    <span class="sc" data-qs="Explain this code line by line">Line Explanation</span>
-                    <span class="sc" data-qs="Optimize this code for speed">Optimize Code</span>
-                    <span class="sc" data-qs="Find potential bugs in this code">Find Bugs</span>
-                `;
+                chipArea.innerHTML = '<span class="sc" data-qs="Explain this code line by line">Explain Code</span><span class="sc" data-qs="Optimize this code for performance">Optimize Code</span><span class="sc" data-qs="Find potential bugs in this snippet">Find Bugs</span>';
             } else {
-                chipArea.innerHTML = `
-                    <span class="sc" data-qs="Give me a practical example of this">Give Example</span>
-                    <span class="sc" data-qs="Explain this simpler">Make Simpler</span>
-                    <span class="sc" data-qs="Summarize the key points">Summarize</span>
-                `;
+                chipArea.innerHTML = '<span class="sc" data-qs="Give me a practical example">Give Example</span><span class="sc" data-qs="Explain this simpler">Explain Simpler</span><span class="sc" data-qs="Summarize the key points">Summarize</span>';
             }
+        }
+              
             chipArea.querySelectorAll(".sc").forEach(function(el) {
                 el.addEventListener("click", function() {
                     var msgInput = document.getElementById("msgin");
