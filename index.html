@@ -640,7 +640,14 @@ async function sendMsg(){
             // Passing mediaHtml straight through your native addMsg creates the bubble with your logo automatically
             addMsg("ai", "Here is your generation:<br>" + mediaHtml, text);
             G.busy = false;
-            var area = document.getElementById("ca"); if (area) area.scrollTop = area.scrollHeight;
+                   // --- SMART CONTEXT-AWARE AUTO-SCROLL ---
+        var area = document.getElementById("ca");
+        if (area) {
+            var isUserAtBottom = (area.scrollHeight - area.scrollTop - area.clientHeight) <= 150;
+            if (isUserAtBottom) {
+                area.scrollTo({ top: area.scrollHeight, behavior: 'smooth' });
+            }
+        }  
         }, 2200);
         return; // Stops standard chat text from running over your media asset
     }
@@ -650,6 +657,17 @@ async function sendMsg(){
     G.msgs.push({role: "user", content: text}); clearInp();
     var title=text.slice(0,42); if(!G.convId) startConv(title);
     var tid=showTyping(); G.busy=true;
+      // --- SMART CONTEXT-AWARE AUTO-SCROLL ---
+    var area = document.getElementById("ca");
+    if (area) {
+        var isUserAtBottom = (area.scrollHeight - area.scrollTop - area.clientHeight) <= 150;
+        if (isUserAtBottom) {
+            setTimeout(function() {
+                area.scrollTo({ top: area.scrollHeight, behavior: 'smooth' });
+            }, 50);
+        }
+      }
+  
         try {
         var reply=await callGroq();
         removeTyping(tid);
