@@ -659,9 +659,24 @@ function handleFiles(inp){Array.from(inp.files).forEach(function(f){G.atts.push(
 async function sendMsg(){
     var inp=document.getElementById("msgin"); var text=inp.value.trim(); if(!text||G.busy)return;
     hideEmpty();showSC();
-          // --- MIND-READER ENGINE INSTANT INJECTION ---
-    var currentInput = document.getElementById("msgin") ? document.getElementById("msgin").value.trim() : "";
-    
+              // --- MIND-READER ENGINE INSTANT INJECTION ---
+    if (typeof text !== 'undefined' && text && preFetchedReply && text === preFetchedPrompt) {
+        var tid = showTyping();
+        setTimeout(function() {
+            removeTyping(tid);
+            addMsg("ai", fmt(preFetchedReply), preFetchedReply);
+            G.msgs.push({role: "user", content: text});
+            G.msgs.push({role: "assistant", content: preFetchedReply});
+            
+            if(inp) inp.value = "";
+            preFetchedReply = null;
+            
+            var area = document.getElementById("ca");
+            if (area) area.scrollTo({ top: area.scrollHeight, behavior: 'smooth' });
+        }, 100);
+        return; // Bypasses server routine completely!
+    }
+  
     // Safety Guard: Agar chat input khali hai (jaise starting onboarding screen par), toh bypass skip karo
     if (currentInput && preFetchedReply && currentInput === preFetchedPrompt) {
         var tid = showTyping();
