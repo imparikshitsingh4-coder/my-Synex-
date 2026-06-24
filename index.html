@@ -364,6 +364,25 @@ div, section, main {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(156, 163, 175, 0.6);
 }
+  /* --- HOUDINI FOCUS MODE STYLES --- */
+.tbtit, .right-icons, .msgin-container, .settings-btn, #schips {
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+body.focus-mode .tbtit, 
+body.focus-mode .right-icons, 
+body.focus-mode .settings-btn {
+    opacity: 0 !important;
+    transform: translateY(-10px);
+    pointer-events: none;
+}
+
+body.focus-mode .msgin-container,
+body.focus-mode #schips {
+    opacity: 0 !important;
+    transform: translateY(10px);
+    pointer-events: none;
+}
 </style>
 </head>
 <body>
@@ -870,6 +889,30 @@ document.addEventListener("DOMContentLoaded",function(){
   var saved;try{saved=localStorage.getItem("sx_u");}catch(e){}
   if(saved){G.userName=saved;document.getElementById("gs").style.display="none";showBar(saved);bootApp();}
 });
+  // --- HOUDINI FOCUS MODE ENGINE ---
+var chatArea = document.getElementById("ca");
+if (chatArea) {
+    var lastScrollTop = 0;
+    
+    chatArea.addEventListener("scroll", function() {
+        var st = chatArea.scrollTop;
+        
+        // If they scroll UP by more than 20px, hide the UI controls
+        if (st < lastScrollTop && lastScrollTop - st > 20 && st > 50) {
+            document.body.classList.add("focus-mode");
+        } 
+        // If they scroll DOWN near the bottom or tap, bring the UI back
+        else if (st > lastScrollTop || st < 20) {
+            document.body.classList.remove("focus-mode");
+        }
+        lastScrollTop = st <= 0 ? 0 : st;
+    });
+
+    // Tap anywhere on the chat area to instantly bring the UI back
+    chatArea.addEventListener("click", function() {
+        document.body.classList.remove("focus-mode");
+    });
+}
 </script>
 </body>
 </html>
