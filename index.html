@@ -656,11 +656,13 @@ function qp(t){var i=document.getElementById("msgin");i.value=t;i.focus();autoR(
 function qs(t){document.getElementById("msgin").value=t;sendMsg();}
 function insTpl(){var t=["Write a professional email to [Name] about [Topic].","Explain [concept] simply for a beginner.","Write a Python script that [does what].","Summarize:\n\n[paste text here]","Translate to [language]: [your text]","Create a step-by-step plan for [goal].","Debug this code:\n\n[paste code]"];qp(t[Math.floor(Math.random()*t.length)]);}
 function handleFiles(inp){Array.from(inp.files).forEach(function(f){G.atts.push(f);var a=document.getElementById("fp");var c=document.createElement("div");c.className="fchip";var ic=f.type.indexOf("image")>=0?"\uD83D\uDDBC\uFE0F":f.type.indexOf("pdf")>=0?"\uD83D\uDCC4":"\uD83D\uDCCE";c.innerHTML=ic+" "+(f.name.length>22?f.name.slice(0,22)+"...":f.name)+' <span class="frm" onclick="this.parentElement.remove()">\u00D7</span>';a.appendChild(c);});inp.value="";}
-async function sendMsg(){
-    var inp=document.getElementById("msgin"); var text=inp.value.trim(); if(!text||G.busy)return;
-    hideEmpty();showSC();
-                  // --- MIND-READER ENGINE INSTANT INJECTION ---
-    if (typeof text !== 'undefined' && text && typeof preFetchedReply !== 'undefined' && preFetchedReply && text === preFetchedPrompt) {
+async function sendMsg() {
+    var inp = document.getElementById("msgin");
+    // Secure Fallback: If we're on the onboarding screen, let the text pass through safely
+    var text = inp ? inp.value.trim() : "";
+    
+    // --- MIND-READER ENGINE INSTANT INJECTION ---
+    if (text && typeof preFetchedReply !== 'undefined' && preFetchedReply && text === preFetchedPrompt) {
         var tid = showTyping();
         setTimeout(function() {
             removeTyping(tid);
@@ -676,27 +678,13 @@ async function sendMsg(){
         }, 100);
         return; // Bypasses server routine completely!
     }
-    
-    // Define media generation keywords for natural language routing
-    var textLower = text.toLowerCase();
-    var isImageRequest = textLower.includes("generate an image") || textLower.includes("create an image") || textLower.includes("make a picture") || textLower.includes("image of") || textLower.includes("photo of") || textLower.includes("picture of") || textLower.startsWith("/image");
-    var isVideoRequest = textLower.includes("generate a video") || textLower.includes("create a video") || textLower.includes("loop of") || textLower.includes("make a loop") || textLower.startsWith("/video");
 
-    // --- Media Generation Intelligent Router ---
-    if (isImageRequest || isVideoRequest) {
-        var isVideo = isVideoRequest;
-        addMsg("user", esc(text));
-        inp.value = "";
-        
-        var tid = showTyping(); G.busy = true;
-        
-        // Clean prompt extraction
-        var prompt = text;
-        if (textLower.startsWith("/image ") || textLower.startsWith("/video ")) { prompt = text.substring(7); } 
-        else if (textLower.startsWith("/image") || textLower.startsWith("/video")) { prompt = text.substring(6); }
-        prompt = prompt.trim();
-        var encodedPrompt = encodeURIComponent(prompt);
-        var mediaHtml = "";
+    // Standard guard for normal chat entries
+    if (inp && !text && !document.getElementById("gs")) return; 
+    if (G.busy) return;
+
+    hideEmpty();
+    showSC();
         
         if (isVideo) {
             var videoUrl = "https://assets.mixkit.co/videos/preview/mixkit-geometric-shapes-looping-background-41774-large.mp4"; 
