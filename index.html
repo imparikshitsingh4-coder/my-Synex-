@@ -660,7 +660,7 @@ async function sendMsg() {
     var inp = document.getElementById("msgin");
     var text = inp ? inp.value.trim() : "";
     
-    // Onboarding Panel Guard: If the onboarding element is active, let it pass through!
+    // Check if the onboarding panel is currently visible on screen
     var onboardingActive = document.getElementById("gs") && document.getElementById("gs").style.display !== "none";
 
     // --- MIND-READER ENGINE INSTANT INJECTION ---
@@ -678,10 +678,10 @@ async function sendMsg() {
             var area = document.getElementById("ca");
             if (area) area.scrollTo({ top: area.scrollHeight, behavior: 'smooth' });
         }, 100);
-        return; // Bypasses server routine completely!
+        return; // Complete bypass
     }
 
-    // Standard chat empty guard: Skip this check if we are on the login screen
+    // Safety check: Exit if empty, but NEVER exit if we are on the onboarding screen
     if (!onboardingActive) {
         if (!text || G.busy) return;
     }
