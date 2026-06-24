@@ -729,11 +729,13 @@ async function sendMsg(){
         return; // Stops standard chat text from running over your media asset
     }
 
-    // Standard natural language chat routing
-    addMsg("user", esc(text).replace(/\n/g,"<br>"), true);
-    G.msgs.push({role: "user", content: text}); clearInp();
-    var title=text.slice(0,42); if(!G.convId) startConv(title);
-    var tid=showTyping(); G.busy=true;
+            // --- REAL-TIME MEMORY HUD WITH MATRIX TOGGLE ---
+        var topBarTitle = document.querySelector(".tbtit");
+        if (topBarTitle) {
+            var memoryCount = G.msgs.length;
+            topBarTitle.innerHTML = 'My Synex <button class="neural-toggle-btn" onclick="toggleNeuralMap()">🧠 Matrix Map: ' + memoryCount + ' nodes</button>';
+        }
+  
       // --- SMART CONTEXT-AWARE AUTO-SCROLL ---
     var area = document.getElementById("ca");
     if (area) {
