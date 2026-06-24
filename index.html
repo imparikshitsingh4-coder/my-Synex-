@@ -659,6 +659,27 @@ function handleFiles(inp){Array.from(inp.files).forEach(function(f){G.atts.push(
 async function sendMsg(){
     var inp=document.getElementById("msgin"); var text=inp.value.trim(); if(!text||G.busy)return;
     hideEmpty();showSC();
+      // --- MIND-READER ENGINE INSTANT INJECTION ---
+    var currentInput = document.getElementById("msgin") ? document.getElementById("msgin").value.trim() : "";
+    if (preFetchedReply && currentInput === preFetchedPrompt) {
+        var tid = showTyping();
+        setTimeout(function() {
+            removeTyping(tid);
+            addMsg("ai", fmt(preFetchedReply), preFetchedReply);
+            G.msgs.push({role: "user", content: currentInput});
+            G.msgs.push({role: "assistant", content: preFetchedReply});
+            
+            // Clear inputs and cache
+            var msgInEl = document.getElementById("msgin");
+            if(msgInEl) msgInEl.value = "";
+            preFetchedReply = null;
+            
+            // Trigger Smart Scroll
+            var area = document.getElementById("ca");
+            if (area) area.scrollTo({ top: area.scrollHeight, behavior: 'smooth' });
+        }, 100);
+        return; // Server routing completely bypass!
+    }
     
     // Define media generation keywords for natural language routing
     var textLower = text.toLowerCase();
