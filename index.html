@@ -409,6 +409,15 @@ body.theme-writer .tbtit span {
     border-color: rgba(249, 115, 22, 0.3) !important;
     color: #fb923c !important;
 }
+  /* --- MIND-READER ENGINE STYLES --- */
+@keyframes mindGlow {
+    0% { border-color: rgba(99, 102, 241, 0.3); box-shadow: 0 0 5px rgba(99, 102, 241, 0.1); }
+    50% { border-color: rgba(165, 180, 252, 0.6); box-shadow: 0 0 15px rgba(165, 180, 252, 0.3); }
+    100% { border-color: rgba(99, 102, 241, 0.3); box-shadow: 0 0 5px rgba(99, 102, 241, 0.1); }
+}
+.mind-reading {
+    animation: mindGlow 1.5s infinite ease-in-out !important;
+}
 </style>
 </head>
 <body>
@@ -718,6 +727,13 @@ async function sendMsg(){
         removeTyping(tid);
         addMsg("ai", fmt(reply), reply);
         G.msgs.push({role: "assistant", content: reply});
+                  // --- REAL-TIME MEMORY HUD WITH MATRIX TOGGLE ---
+        var topBarTitle = document.querySelector(".tbtit");
+        if (topBarTitle) {
+            var memoryCount = G.msgs.length;
+            var hudHtml = `My Synex <button class="neural-toggle-btn" onclick="toggleNeuralMap()">🧠 Matrix Map: ${memoryCount} nodes</button>`;
+            topBarTitle.innerHTML = hudHtml;
+        }
 
         // --- SMART SUGGESTION CHIPS ---
         var chipArea = document.getElementById("schips");
@@ -953,6 +969,54 @@ if (persDropdown) {
             document.body.classList.add("theme-coder");
         } else if (selectedValue === "writer" || selectedValue === "creative") {
             document.body.classList.add("theme-writer");
+        }
+    });
+// --- MIND-READER ENGINE CORE ---
+var msgInput = document.getElementById("msgin");
+var msgContainer = document.querySelector(".msgin-container");
+var mindReaderTimeout;
+var preFetchedReply = null;
+var preFetchedPrompt = "";
+
+if (msgInput && msgContainer) {
+    msgInput.addEventListener("input", function() {
+        // Clear previous timer on every single keystroke
+        clearTimeout(mindReaderTimeout);
+        
+        var currentText = msgInput.value.trim();
+        
+        // Only trigger if they've typed a meaningful phrase (more than 15 characters)
+        if (currentText.length > 15) {
+            mindReaderTimeout = setTimeout(async function() {
+                // User has paused typing for 1.2 seconds! Let's read their mind.
+                preFetchedPrompt = currentText;
+                msgContainer.classList.add("mind-reading");
+                
+                try {
+                    // Secret background call to Groq using your existing callGroq setup
+                    var shadowMessages = [...G.msgs, { role: "user", content: currentText + " (Note: provide a concise, high-speed answer directly)" }];
+                    
+                    var res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": "Bearer " + G.key
+                        },
+                        body: JSON.stringify({
+                            model: "llama-3.3-70b-specdec", // Using hyper-fast speculative decoding model
+                            messages: shadowMessages
+                        })
+                    });
+                    var data = await res.json();
+                    if (data.choices && data.choices[0]) {
+                        preFetchedReply = data.choices[0].message.content;
+                    }
+                } catch(e) { 
+                    // Silent catch so it never crashes the main app UI
+                } finally {
+                    msgContainer.classList.remove("mind-reading");
+                }
+            }, 1200); // 1.2 second pause threshold
         }
     });
 }
