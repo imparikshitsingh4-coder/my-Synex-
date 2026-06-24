@@ -723,12 +723,11 @@ async function sendMsg() {
         removeTyping(tid);
         addMsg("ai", fmt(reply), reply);
         G.msgs.push({role: "assistant", content: reply});
-                  // --- REAL-TIME MEMORY HUD WITH MATRIX TOGGLE ---
+                          // --- REAL-TIME MEMORY HUD WITH MATRIX TOGGLE ---
         var topBarTitle = document.querySelector(".tbtit");
         if (topBarTitle) {
             var memoryCount = G.msgs.length;
-            var hudHtml = `My Synex <button class="neural-toggle-btn" onclick="toggleNeuralMap()">🧠 Matrix Map: ${memoryCount} nodes</button>`;
-            topBarTitle.innerHTML = hudHtml;
+            topBarTitle.innerHTML = 'My Synex <button class="neural-toggle-btn" onclick="toggleNeuralMap()">🧠 Matrix Map: ' + memoryCount + ' nodes</button>';
         }
 
         // --- SMART SUGGESTION CHIPS ---
