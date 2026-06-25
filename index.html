@@ -717,20 +717,40 @@ function initiateVoiceMode() {
             handleVoiceResponsePlayback();
         }
     };
-    
-    voiceRecognition.onerror = function(e) {
-        document.getElementById("voiceStatus").innerText = "Listening Paused";
-        document.querySelector(".voice-wave-container").classList.remove("voice-wave-active");
-    };
-    
-    voiceRecognition.onend = function() {
-        document.querySelector(".voice-wave-container").classList.remove("voice-wave-active");
-    };
-    
-    voiceRecognition.start();
-}
 
-function handleVoiceResponsePlayback() {
+      try {
+        var reply = await callGroq();
+        removeTyping(tid);
+        addMsg("ai", fmt(reply), reply);
+        G.msgs.push({ role: "assistant", content: reply });
+
+        // --- ARTIFACTS CANVAS INTERCEPT ENGINE ---
+        if (reply && reply.includes("```html")) {
+            var htmlBlockRegex = /```html([\s\S]*?)```/i;
+            var match = reply.match(htmlBlockRegex);
+            if (match && match[1]) {
+                var extractCode = match[1].trim();
+                var canvasPanel = document.getElementById("synexCanvas");
+                var chatWindow = document.getElementById("ca");
+                var iframe = document.getElementById("canvasSandbox");
+                
+                if (canvasPanel && iframe) {
+                    canvasPanel.style.display = "flex";
+                    if (chatWindow && window.innerWidth > 768) {
+                        chatWindow.style.width = "50%";
+                    } else if (chatWindow) {
+                        chatWindow.classList.add("split-active-layout");
+                    }
+                    var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    iframeDoc.open();
+                    iframeDoc.write(extractCode);
+                    iframeDoc.close();
+                }
+            }
+        }
+      }
+  
+    function handleVoiceResponsePlayback() {
     if (!window.speechSynthesis) return;
     
     document.getElementById("voiceStatus").innerText = "Synex Speaking...";
