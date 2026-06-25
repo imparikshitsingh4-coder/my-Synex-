@@ -647,6 +647,94 @@ function qp(t){var i=document.getElementById("msgin");i.value=t;i.focus();autoR(
 function qs(t){document.getElementById("msgin").value=t;sendMsg();}
 function insTpl(){var t=["Write a professional email to [Name] about [Topic].","Explain [concept] simply for a beginner.","Write a Python script that [does what].","Summarize:\n\n[paste text here]","Translate to [language]: [your text]","Create a step-by-step plan for [goal].","Debug this code:\n\n[paste code]"];qp(t[Math.floor(Math.random()*t.length)]);}
 function handleFiles(inp){Array.from(inp.files).forEach(function(f){G.atts.push(f);var a=document.getElementById("fp");var c=document.createElement("div");c.className="fchip";var ic=f.type.indexOf("image")>=0?"\uD83D\uDDBC\uFE0F":f.type.indexOf("pdf")>=0?"\uD83D\uDCC4":"\uD83D\uDCCE";c.innerHTML=ic+" "+(f.name.length>22?f.name.slice(0,22)+"...":f.name)+' <span class="frm" onclick="this.parentElement.remove()">\u00D7</span>';a.appendChild(c);});inp.value="";}
+  // --- SYNEX ADVANCED VOICE ENGINE CONFIG ---
+var voiceRecognition;
+var isVoiceSpeaking = false;
+
+function initiateVoiceMode() {
+    var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        alert("Voice features are not fully supported on this browser version. Please try Chrome or Safari!");
+        return;
+    }
+    
+    // Stop any ongoing speech playback before starting listener
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    
+    document.getElementById("voiceOverlay").style.display = "flex";
+    document.getElementById("voiceStatus").innerText = "Synex Listening...";
+    document.getElementById("voiceSubtitle").innerText = '"Say something..."';
+    
+    voiceRecognition = new SpeechRecognition();
+    voiceRecognition.continuous = false;
+    voiceRecognition.interimResults = false;
+    voiceRecognition.lang = 'en-US';
+    
+    voiceRecognition.onstart = function() {
+        document.querySelector(".voice-wave-container").classList.add("voice-wave-active");
+    };
+    
+    voiceRecognition.onresult = async function(event) {
+        var transcript = event.results[0][0].transcript;
+        document.getElementById("voiceSubtitle").innerText = '"' + transcript + '"';
+        document.getElementById("voiceStatus").innerText = "Processing...";
+        
+        // Feed the spoken transcript straight into your core layout's input field
+        var chatInput = document.getElementById("msgin");
+        if (chatInput) {
+            chatInput.value = transcript;
+            // Execute your existing message layout pipeline
+            await sendMsg();
+            // Wait for assistant reply to populate in G.msgs history stack
+            handleVoiceResponsePlayback();
+        }
+    };
+    
+    voiceRecognition.onerror = function(e) {
+        document.getElementById("voiceStatus").innerText = "Listening Paused";
+        document.querySelector(".voice-wave-container").classList.remove("voice-wave-active");
+    };
+    
+    voiceRecognition.onend = function() {
+        document.querySelector(".voice-wave-container").classList.remove("voice-wave-active");
+    };
+    
+    voiceRecognition.start();
+}
+
+function handleVoiceResponsePlayback() {
+    if (!window.speechSynthesis) return;
+    
+    document.getElementById("voiceStatus").innerText = "Synex Speaking...";
+    // Grab the latest assistant reply from your global messages store array
+    var lastMsg = G.msgs[G.msgs.length - 1];
+    if (lastMsg && lastMsg.role === "assistant") {
+        // Strip out HTML code structures or clean image paths before speaking out loud
+        var cleanText = lastMsg.content.replace(/<[^>]*>/g, '').replace(/https?:\/\/\S+/g, '');
+        
+        var utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = 'en-US';
+        
+        // Auto resume listener loop when assistant completes reading the response
+        utterance.onend = function() {
+            if (document.getElementById("voiceOverlay").style.display === "flex") {
+                // Instantly re-open listener channel for fluid walkie-talkie cycle
+                initiateVoiceMode();
+            }
+        };
+        
+        window.speechSynthesis.speak(utterance);
+    } else {
+        // Fallback if no message found
+        setTimeout(handleVoiceResponsePlayback, 500);
+    }
+}
+
+function exitVoiceMode() {
+    if (voiceRecognition) voiceRecognition.abort();
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    document.getElementById("voiceOverlay").style.display = "none";
+}
 async function sendMsg(){
     var inp=document.getElementById("msgin"); var text=inp.value.trim(); if(!text||G.busy)return;
     hideEmpty();showSC();
@@ -957,5 +1045,28 @@ if (persDropdown) {
     });
 }
 </script>
+  <div id="voiceOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 12, 0.96); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; font-family: sans-serif; color: #fff; backdrop-filter: blur(10px);">
+    <div id="voiceStatus" style="font-size: 18px; margin-bottom: 40px; color: #a855f7; font-weight: 500; letter-spacing: 1px;">Synex Listening...</div>
+    
+    <div class="voice-wave-container" style="position: relative; width: 150px; height: 150px; display: flex; align-items: center; justify-content: center;">
+        <div id="pulseRing1" style="position: absolute; width: 100%; height: 100%; border-radius: 50%; background: rgba(168, 85, 247, 0.2); animation: voicePulse 2s infinite ease-in-out;"></div>
+        <div id="pulseRing2" style="position: absolute; width: 80%; height: 80%; border-radius: 50%; background: rgba(168, 85, 247, 0.4); animation: voicePulse 2s infinite ease-in-out 0.5s;"></div>
+        <div style="position: absolute; width: 50%; height: 50%; border-radius: 50%; background: linear-gradient(135deg, #ec4899, #a855f7); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 30px rgba(168, 85, 247, 0.6); cursor: pointer;" onclick="exitVoiceMode()">
+            <span style="font-size: 32px;">🛑</span>
+        </div>
+    </div>
+    
+    <div id="voiceSubtitle" style="margin-top: 50px; width: 80%; max-width: 400px; text-align: center; color: #9ca3af; font-size: 14px; line-height: 1.5; font-style: italic; min-height: 42px;">"Say something..."</div>
+</div>
+
+<style>
+@keyframes voicePulse {
+    0% { transform: scale(0.95); opacity: 0.5; }
+    50% { transform: scale(1.3); opacity: 0.2; }
+    100% { transform: scale(0.95); opacity: 0.5; }
+}
+.voice-wave-active #pulseRing1 { animation-duration: 0.8s !important; background: rgba(236, 72, 153, 0.3) !important; }
+.voice-wave-active #pulseRing2 { animation-duration: 0.8s !important; background: rgba(168, 85, 247, 0.5) !important; }
+</style>
 </body>
 </html>
