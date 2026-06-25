@@ -567,6 +567,34 @@ body.theme-writer .tbtit span {
     </div>
   </div>
 </div>
+              </div>
+        </div>
+    </div>
+</div> <div id="synexCanvas" style="display: none; width: 50%; height: 100vh; background: #111116; border-left: 1px solid #22222e; position: fixed; right: 0; top: 0; flex-direction: column; z-index: 1000; box-shadow: -10px 0 30px rgba(0,0,0,0.5);">
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; background: #161622; border-bottom: 1px solid #22222e;">
+        <span style="color: #a855f7; font-weight: 600; font-family: sans-serif; font-size: 14px; letter-spacing: 0.5px;">🎨 Synex Live Canvas Preview</span>
+        <button type="button" onclick="closeCanvas()" style="background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 18px; transition: color 0.2s;">❌</button>
+    </div>
+    <iframe id="canvasSandbox" sandbox="allow-scripts" style="width: 100%; flex-grow: 1; border: none; background: #ffffff;"></iframe>
+</div>
+
+<style>
+@media (max-width: 768px) {
+    #synexCanvas {
+        width: 100% !important;
+        height: 70vh !important;
+        top: 30vh !important;
+        box-shadow: 0 -10px 30px rgba(0,0,0,0.5) !important;
+        border-left: none !important;
+        border-top: 1px solid #22222e !important;
+    }
+    .split-active-layout {
+        height: 30vh !important;
+        width: 100% !important;
+    }
+}
+</style>
+<script> var GK="gsk_PFZnCLTI..."
 
 <script>
 var GK="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";
@@ -735,6 +763,50 @@ function exitVoiceMode() {
     if (window.speechSynthesis) window.speechSynthesis.cancel();
     document.getElementById("voiceOverlay").style.display = "none";
 }
+  // --- SYNEX LIVE ARTIFACTS CANVAS ENGINE ---
+function checkForCodeArtifacts(rawAiText) {
+    // Regex targeting standard markdown HTML code blocks
+    var htmlBlockRegex = /```html([\s\S]*?)```/i;
+    var match = rawAiText.match(htmlBlockRegex);
+    
+    if (match && match[1]) {
+        var extractCode = match[1].trim();
+        launchCanvasPreview(extractCode);
+    }
+}
+
+function launchCanvasPreview(codeToRender) {
+    var canvasPanel = document.getElementById("synexCanvas");
+    var chatWindow = document.getElementById("ca");
+    var iframe = document.getElementById("canvasSandbox");
+    
+    if (!canvasPanel || !iframe) return;
+
+    // Split screen interface modification
+    canvasPanel.style.display = "flex";
+    if (chatWindow && window.innerWidth > 768) {
+        chatWindow.style.width = "50%";
+    } else if (chatWindow) {
+        chatWindow.classList.add("split-active-layout");
+    }
+
+    // Inject code cleanly into the isolated sandbox frame
+    var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+    iframeDoc.open();
+    iframeDoc.write(codeToRender);
+    iframeDoc.close();
+}
+
+function closeCanvas() {
+    var canvasPanel = document.getElementById("synexCanvas");
+    var chatWindow = document.getElementById("ca");
+    
+    if (canvasPanel) canvasPanel.style.display = "none";
+    if (chatWindow) {
+        chatWindow.style.width = "100%";
+        chatWindow.classList.remove("split-active-layout");
+    }
+}
 async function sendMsg(){
     var inp=document.getElementById("msgin"); var text=inp.value.trim(); if(!text||G.busy)return;
     hideEmpty();showSC();
@@ -801,12 +873,17 @@ async function sendMsg(){
         }
       }
   
-        try {
-        var reply=await callGroq();
+            try {
+        var reply = await callGroq();
         removeTyping(tid);
         addMsg("ai", fmt(reply), reply);
-        G.msgs.push({role: "assistant", content: reply});
+        G.msgs.push({ role: "assistant", content: reply });
 
+        // --- STEP 3: ARTIFACTS INTERCEPT TRIGGER ---
+        if (typeof checkForCodeArtifacts === 'function') {
+            checkForCodeArtifacts(reply);
+        }
+              
         // --- SMART SUGGESTION CHIPS ---
         var chipArea = document.getElementById("schips");
         if (chipArea) {
