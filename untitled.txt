@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kinetix - Cyber-Grade AI Workspace</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Google Fonts Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Vector Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000;
+            color: #FFFFFF;
+            overflow-x: hidden;
+        }
+        /* Custom scrollbar for cyberpunk look */
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #000000;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e1b4b;
+            border-radius: 2px;
+        }
+        /* Glassmorphism Classes */
+        .glass-card {
+            background: rgba(10, 10, 15, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        /* Ambient Glowing Backgrounds */
+        .glow-purple {
+            filter: blur(140px);
+            background: radial-gradient(circle, rgba(147,51,234,0.15) 0%, rgba(0,0,0,0) 70%);
+        }
+        .glow-blue {
+            filter: blur(140px);
+            background: radial-gradient(circle, rgba(6,182,212,0.12) 0%, rgba(0,0,0,0) 70%);
+        }
+        /* Custom animations */
+        @keyframes subtle-pulse {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.03); }
+        }
+        .animate-pulse-glow {
+            animation: subtle-pulse 4s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex justify-center items-stretch antialiased selection:bg-cyan-500/30">
+
+    <!-- Ambient Backdrops -->
+    <div class="fixed top-[-10%] left-[-10%] w-[60%] h-[60%] glow-purple pointer-events-none z-0"></div>
+    <div class="fixed bottom-[-10%] right-[-10%] w-[60%] h-[60%] glow-blue pointer-events-none z-0"></div>
+
+    <!-- Mobile Screen Wrapper to mimic Application Shell layout perfectly -->
+    <div class="w-full max-w-md min-h-screen bg-[#050508] relative z-10 flex flex-col border-x border-zinc-900 shadow-2xl overflow-y-auto pb-24">
+
+        <!-- ==================== ONBOARDING SYSTEM CONTAINER ==================== -->
+        <div id="onboarding-flow" class="absolute inset-0 z-50 bg-[#050508] flex flex-col justify-between p-6 overflow-hidden">
+            <!-- Dynamic Top Pill Indicator -->
+            <div class="flex justify-center mt-6">
+                <span id="onboarding-badge" class="text-[10px] tracking-widest font-semibold px-3 py-1 rounded-full glass-card border-cyan-500/30 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.2)] flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                    <span>SYSTEM BOOTING</span>
+                </span>
+            </div>
+
+            <!-- Central Content Display Card Container -->
+            <div class="my-auto flex flex-col items-center">
+                <!-- Glowing central visual element container -->
+                <div class="w-24 h-24 rounded-2xl bg-gradient-to-br from-purple-600/30 to-blue-600/20 flex items-center justify-center border border-purple-500/40 shadow-[0_0_30px_rgba(147,51,234,0.25)] relative mb-8">
+                    <div id="onboarding-icon" class="text-3xl text-white">
+                        <i class="fa-solid fa-terminal text-purple-300"></i>
+                    </div>
+                </div>
+
+                <!-- Text Presentation Context Matrix -->
+                <div class="text-center px-4">
+                    <h2 id="onboarding-title" class="text-2xl font-bold tracking-tight text-white mb-3">Welcome to Kinetix</h2>
+                    <p id="onboarding-subtext" class="text-xs text-[#8A8A93] leading-relaxed max-w-xs mx-auto">
+                        A cyber-grade AI workspace. Dual-pane chat + Canvas, personality-driven models, and real-time memory HUD.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Onboarding System Controller Bottom Bar -->
+            <div class="flex items-center justify-between mt-auto mb-4">
+                <button onclick="exitOnboarding()" class="text-xs text-[#8A8A93] hover:text-white transition-colors py-2 px-3">Skip</button>
+                
+                <!-- Pagination Dot Indicator Arrays -->
+                <div class="flex items-center gap-2">
+                    <span class="dot-indicator w-1.5 h-1.5 rounded-full bg-cyan-400 transition-all duration-300"></span>
+                    <span class="dot-indicator w-1.5 h-1.5 rounded-full bg-zinc-700 transition-all duration-300"></span>
+                    <span class="dot-indicator w-1.5 h-1.5 rounded-full bg-zinc-700 transition-all duration-300"></span>
+                    <span class="dot-indicator w-1.5 h-1.5 rounded-full bg-zinc-700 transition-all duration-300"></span>
+                </div>
+
+                <!-- Step Logic Progression Action Buttons -->
+                <button id="onboarding-btn" onclick="nextOnboardingStep()" class="text-xs font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-5 py-2.5 rounded-xl hover:opacity-90 shadow-lg shadow-purple-900/30 transition-all flex items-center gap-1.5">
+                    <span>Continue</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- ==================== MAIN CORE DASHBOARD UI ==================== -->
+        
+        <!-- HEADER COMPONENT LAYER -->
+        <header id="app-header" class="p-4 border-b border-zinc-900 sticky top-0 bg-[#050508]/80 backdrop-blur-md z-30 transition-all duration-300">
+            <div class="flex justify-between items-start mb-3">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <!-- Tiny application logo visual anchor -->
+                        <img src="logo.jpg" alt="Logo" class="w-4 h-4 rounded-sm object-contain brightness-120 invert">
+                        <h1 class="text-lg font-bold tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-zinc-400">kinetix</h1>
+                    </div>
+                    <div class="flex items-center gap-2 text-[10px] text-[#8A8A93] mt-0.5">
+                        <span class="flex items-center gap-1"><span class="w-1 h-1 rounded-full bg-emerald-500"></span> Canvas Ready</span>
+                        <span class="text-zinc-700">•</span>
+                        <span id="header-personality-tag">Balanced Mode</span>
+                    </div>
+                </div>
+                <!-- Top Right Layout Controls -->
+                <div class="flex items-center gap-2.5 text-zinc-400">
+                    <button class="hover:text-white p-1 text-xs transition-colors" title="Split Pane Layout"><i class="fa-solid fa-table-columns"></i></button>
+                    <button class="hover:text-white p-1 text-xs transition-colors" title="Full Screen Canvas"><i class="fa-solid fa-expand"></i></button>
+                </div>
+            </div>
+
+            <!-- Horizon Scrolling Status Pill Ribbons -->
+            <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar mask-gradient-r">
+                <button onclick="toggleModelDropdown()" class="flex-shrink-0 text-[10px] bg-zinc-900/90 text-zinc-200 border border-zinc-800 rounded-full px-2.5 py-1 flex items-center gap-1.5 hover:border-zinc-700 transition-colors">
+                    <span id="active-model-ribbon-tag">Claude Sonnet 4.5</span>
+                    <i class="fa-solid fa-chevron-down text-[8px] text-[#8A8A93]"></i>
+                </button>
+                <div class="flex-shrink-0 text-[10px] bg-zinc-900/40 text-[#8A8A93] border border-zinc-800/60 rounded-full px-2.5 py-1 flex items-center gap-1.5">
+                    <span class="w-1 h-1 rounded-full bg-cyan-400 animate-pulse"></span>
+                    <span>Memory Engine</span>
+                </div>
+                <div class="flex-shrink-0 text-[10px] bg-zinc-900/40 text-[#8A8A93] border border-zinc-800/60 rounded-full px-2.5 py-1">
+                    <span id="turn-counter-tag">0 turns</span>
+                </div>
+                <div class="flex-shrink-0 text-[10px] bg-zinc-900/40 text-emerald-500/80 border border-zinc-800/60 rounded-full px-2.5 py-1 flex items-center gap-1">
+                    <i class="fa-solid fa-cloud text-[8px]"></i> Synced
+                </div>
+                <div class="flex-shrink-0 text-[10px] bg-zinc-900/40 text-cyan-400/80 border border-zinc-800/60 rounded-full px-2.5 py-1">
+                    Context Loaded
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN DYNAMIC VIEWS CONTAINER MATRIX -->
+        <main class="flex-1 p-4 relative z-20">
+
+            <!-- TAB ONE: WORKSPACE VIEWER PORT -->
+            <div id="view-workspace" class="app-view space-y-6 flex flex-col justify-between min-h-[50vh]">
+                <!-- Central Waiting Canvas Arena -->
+                <div class="my-auto text-center py-12 px-4 flex flex-col items-center">
+                    <div class="w-20 h-20 rounded-full bg-cyan-500/5 flex items-center justify-center border border-cyan-500/20 shadow-[0_0_40px_rgba(6,182,212,0.1)] relative mb-6 animate-pulse-glow">
+                        <i class="fa-solid fa-bolt text-2xl text-cyan-400 drop-shadow-[0_0_8px_rgba(6,182,212,0.6)]"></i>
+                    </div>
+                    <h3 class="text-sm font-semibold tracking-wide text-white mb-2">Canvas Ready. Awaiting Input.</h3>
+                    <p class="text-xs text-[#8A8A93] leading-relaxed max-w-xs mx-auto">
+                        Ask anything. Request HTML/JS artifacts and kinetix will render them in the Canvas workspace interface.
+                    </p>
+                </div>
+
+                <!-- Input Sub-Layout Controls Bracket -->
+                <div class="space-y-3 mt-auto">
+                    <!-- Context Dynamic Suggestion Chips Quick Input -->
+                    <div class="flex items-center gap-2 overflow-x-auto py-1 no-scrollbar text-[11px]">
+                        <button onclick="injectPrompt('Show me a demo dashboard HTML')" class="flex-shrink-0 glass-card bg-zinc-900/30 hover:bg-zinc-900/80 text-zinc-300 rounded-lg px-3 py-1.5 transition-all text-left border-zinc-800/80">
+                            Show me a demo dashboard HTML
+                        </button>
+                        <button onclick="injectPrompt('Explain quantum computing matrix operations')" class="flex-shrink-0 glass-card bg-zinc-900/30 hover:bg-zinc-900/80 text-zinc-300 rounded-lg px-3 py-1.5 transition-all text-left border-zinc-800/80">
+                            Explain quantum...
+                        </button>
+                    </div>
+
+                    <!-- Interactive Glass Chat Input Shell Structure -->
+                    <div class="glass-card rounded-2xl p-2 flex items-center gap-2 border-zinc-800/80 shadow-xl">
+                        <!-- Accessory Tweak Triggers -->
+                        <div class="flex items-center gap-1 pl-1">
+                            <button class="w-7 h-7 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-900/60 transition-all flex items-center justify-center text-xs" title="Dictate Voice Input"><i class="fa-solid fa-microphone"></i></button>
+                            <button class="w-7 h-7 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-900/60 transition-all flex items-center justify-center text-xs" title="Attach Signal Pipeline Asset"><i class="fa-solid fa-paperclip"></i></button>
+                            <button class="w-7 h-7 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-900/60 transition-all flex items-center justify-center text-xs" title="Tweak Parameter Nodes"><i class="fa-solid fa-sliders"></i></button>
+                        </div>
+                        <!-- Input Prompt Area -->
+                        <input type="text" id="chat-input-bar" placeholder="Send a signal to kinetix..." class="flex-1 bg-transparent border-none text-xs text-white placeholder-zinc-500 focus:outline-none py-2 px-1">
+                        <!-- Action Core Dispatcher Trigger Button -->
+                        <button onclick="handleSendMessage()" class="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white flex items-center justify-center hover:opacity-90 transition-opacity flex-shrink-0 shadow-md shadow-purple-900/40">
+                            <i class="fa-solid fa-arrow-up text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB TWO: CREATOR SUITE ASSET PORT -->
+            <div id="view-create" class="app-view space-y-5 hidden">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-xs font-bold tracking-widest text-[#8A8A93]">CREATOR SUITE</h2>
+                        <h3 class="text-lg font-bold text-white">Generate</h3>
+                    </div>
+                    <!-- Generator Structural Active State Indicator Pill -->
+                    <span id="creator-model-badge" class="text-[9px] font-semibold text-purple-400 px-2 py-0.5 rounded-md bg-purple-950/40 border border-purple-900/50 flex items-center gap-1">
+                        <span class="w-1 h-1 rounded-full bg-purple-400"></span> Nano Banana
+                    </span>
+                </div>
+
+                <!-- Dual Segment Mode Selector Toggles -->
+                <div class="p-1 rounded-xl bg-zinc-950 border border-zinc-900 flex items-center text-xs">
+                    <button id="create-toggle-img" onclick="setCreateMode('image')" class="flex-1 py-2 text-center rounded-lg font-medium transition-all bg-zinc-900 text-white flex items-center justify-center gap-1.5 border border-zinc-800/80">
+                        <i class="fa-regular fa-image text-xs text-cyan-400"></i> Image
+                    </button>
+                    <button id="create-toggle-vid" onclick="setCreateMode('video')" class="flex-1 py-2 text-center rounded-lg font-medium transition-all text-[#8A8A93] hover:text-white flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-video text-xs text-purple-400"></i> Video
+                    </button>
+                </div>
+
+                <!-- Media Asset Prompt Engineering Complex -->
+                <div class="space-y-2">
+                    <div class="glass-card rounded-xl p-3 border-zinc-800/80 relative">
+                        <textarea id="create-prompt-input" rows="4" maxlength="500" class="w-full bg-transparent border-none text-xs text-white placeholder-zinc-600 focus:outline-none resize-none leading-relaxed">A cyberpunk cat DJing in Tokyo, neon rain, 4k</textarea>
+                        <div id="create-char-counter" class="absolute bottom-2 right-3 text-[9px] text-zinc-600 font-mono">39/500</div>
+                    </div>
+                    <button onclick="triggerArtifactGeneration()" class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 via-purple-600 to-indigo-600 text-white font-semibold text-xs tracking-wide shadow-xl shadow-purple-950/30 hover:opacity-95 transition-opacity flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-bolt text-[10px]"></i> Render Artifact
+                    </button>
+                </div>
+
+                <!-- Generation Outputs Framework Frame -->
+                <div class="border border-dashed border-zinc-800 rounded-xl p-8 text-center bg-zinc-950/20">
+                    <p class="text-xs font-medium text-zinc-400 mb-1">No artifacts yet.</p>
+                    <p class="text-[11px] text-zinc-600 max-w-xs mx-auto">Prompt and press Render to spin up a fresh architectural visual element here inline into your Canvas interface layer.</p>
+                </div>
+            </div>
+
+            <!-- TAB THREE: MEMORY DASHBOARD INTERFACE CORE -->
+            <div id="view-memory" class="app-view space-y-4 hidden">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-xs font-bold tracking-widest text-[#8A8A93]">MEMORY ENGINE</h2>
+                        <h3 class="text-lg font-bold text-white">Memory HUD</h3>
+                    </div>
+                    <span class="text-[10px] font-semibold text-emerald-400 bg-emerald-950/30 border border-emerald-900/50 px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Active
+                    </span>
+                </div>
+
+                <!-- Sub-Tabs Grid Segment Navigation Layers -->
+                <div class="flex items-center gap-5 border-b border-zinc-900 pb-1.5 text-xs font-medium text-zinc-500">
+                    <button class="text-cyan-400 border-b border-cyan-400 pb-1.5 px-0.5">Context</button>
+                    <button class="hover:text-zinc-300 pb-1.5 px-0.5 transition-colors">Sessions</button>
+                    <button class="hover:text-zinc-300 pb-1.5 px-0.5 transition-colors">Dev Tools</button>
+                </div>
+
+                <!-- Matrix State Metric Fields Stack -->
+                <div class="grid grid-cols-1 gap-2 text-xs">
+                    <div class="glass-card rounded-xl p-3 flex justify-between items-center border-zinc-900">
+                        <span class="text-[#8A8A93] font-medium text-[11px]">ACTIVE MODEL</span>
+                        <span id="hud-active-model" class="font-mono text-zinc-300 text-[11px]">Claude Sonnet 4.5</span>
+                    </div>
+                    <div class="glass-card rounded-xl p-3 flex justify-between items-center border-zinc-900">
+                        <span class="text-[#8A8A93] font-medium text-[11px]">PERSONALITY</span>
+                        <span id="hud-personality" class="text-zinc-300 text-[11px]">Balanced</span>
+                    </div>
+                    <div class="glass-card rounded-xl p-3 flex justify-between items-center border-zinc-900">
+                        <span class="text-[#8A8A93] font-medium text-[11px]">TURNS TRACKED</span>
+                        <span id="hud-turns" class="font-mono text-cyan-400 font-bold text-[11px]">0</span>
+                    </div>
+                </div>
+
+                <!-- Context Raw Tracker Chip Layout Blocks -->
+                <div class="space-y-2">
+                    <h4 class="text-[11px] font-semibold tracking-wider text-[#8A8A93] uppercase">Context Chips</h4>
+                    <div id="hud-context-box" class="glass-card rounded-xl p-4 border-zinc-900 min-h-[100px] flex items-center justify-center text-center">
+                        <p class="text-xs text-zinc-600 max-w-[200px]">No context established yet. Start a conversation in Workspace.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB FOUR: SYSTEM SETTINGS AND CONFIGURATION CORE -->
+            <div id="view-profile" class="app-view space-y-5 hidden">
+                <!-- User Operator Identity Card Frame -->
+                <div class="glass-card rounded-xl p-4 border-zinc-800/80 flex items-center gap-3 bg-gradient-to-br from-zinc-950 via-zinc-900/80 to-purple-950/10">
+                    <div class="w-10 h-10 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-300 text-sm">
+                        <i class="fa-solid fa-user-astronaut"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-1.5">
+                            <h3 class="text-sm font-bold text-white">Operator</h3>
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500" title="System Pipeline Online Ready"></span>
+                        </div>
+                        <p class="text-[10px] text-zinc-500 font-mono">my-synex &nbsp;•&nbsp; online</p>
+                    </div>
+                </div>
+
+                <!-- Personality Optimization Behavioral Control Framework Grid Matrix -->
+                <div class="space-y-2">
+                    <h4 class="text-[10px] font-bold tracking-wider text-[#8A8A93] uppercase">Personality Engine Matrix</h4>
+                    <div class="grid grid-cols-4 gap-1 bg-zinc-950 p-1 rounded-xl border border-zinc-900 text-[10px] font-medium">
+                        <button id="p-btn-balanced" onclick="setPersonality('Balanced')" class="py-2 rounded-lg text-center bg-zinc-900 text-white border border-zinc-800">Balanced</button>
+                        <button id="p-btn-technical" onclick="setPersonality('Technical')" class="py-2 rounded-lg text-center text-zinc-400 hover:text-white">Technical</button>
+                        <button id="p-btn-creative" onclick="setPersonality('Creative')" class="py-2 rounded-lg text-center text-zinc-400 hover:text-white">Creative</button>
+                        <button id="p-btn-concise" onclick="setPersonality('Concise')" class="py-2 rounded-lg text-center text-zinc-400 hover:text-white">Concise</button>
+                    </div>
+                </div>
+
+                <!-- Global Engine Preferences Anchoring Block UI -->
+                <div class="space-y-2">
+                    <h4 class="text-[10px] font-bold tracking-wider text-[#8A8A93] uppercase">Default System Engine preference</h4>
+                    <div class="glass-card rounded-xl overflow-hidden divide-y divide-zinc-900 border-zinc-900 text-xs">
+                        <!-- Pref Item 1 -->
+                        <div onclick="selectGlobalDefaultModel('Claude Sonnet 4.5')" class="p-3 flex justify-between items-center hover:bg-zinc-900/30 cursor-pointer transition-colors">
+                            <div>
+                                <div class="font-medium text-zinc-200">Claude Sonnet 4.5</div>
+                                <div class="text-[10px] text-zinc-500 font-mono">Reasoning · anthropic</div>
+                            </div>
+                            <span id="pref-check-claude" class="w-4 h-4 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 flex items-center justify-center text-[8px]"><i class="fa-solid fa-check"></i></span>
+                        </div>
+                        <!-- Pref Item 2 -->
+                        <div onclick="selectGlobalDefaultModel('GPT-5.2')" class="p-3 flex justify-between items-center hover:bg-zinc-900/30 cursor-pointer transition-colors">
+                            <div>
+                                <div class="font-medium text-zinc-200">GPT-5.2</div>
+                                <div class="text-[10px] text-zinc-500 font-mono">Multimodal · openai</div>
+                            </div>
+                            <span id="pref-check-gpt" class="w-4 h-4 rounded-full border border-zinc-800 text-transparent flex items-center justify-center text-[8px]"><i class="fa-solid fa-check"></i></span>
+                        </div>
+                        <!-- Pref Item 3 -->
+                        <div onclick="selectGlobalDefaultModel('Gemini 3 Pro')" class="p-3 flex justify-between items-center hover:bg-zinc-900/30 cursor-pointer transition-colors">
+                            <div>
+                                <div class="font-medium text-zinc-200">Gemini 3 Pro</div>
+                                <div class="text-[10px] text-zinc-500 font-mono">Fast · gemini</div>
+                            </div>
+                            <span id="pref-check-gemini" class="w-4 h-4 rounded-full border border-zinc-800 text-transparent flex items-center justify-center text-[8px]"><i class="fa-solid fa-check"></i></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Structural Configuration Action Toggles Controls -->
+                <div class="space-y-2">
+                    <h4 class="text-[10px] font-bold tracking-wider text-[#8A8A93] uppercase">System Action Switches</h4>
+                    <div class="glass-card rounded-xl divide-y divide-zinc-900 border-zinc-900 text-xs">
+                        <!-- Toggle Switch element -->
+                        <div class="p-3 flex items-start justify-between gap-4">
+                            <div class="space-y-0.5">
+                                <label class="font-medium text-zinc-200 block">Focus Mode</label>
+                                <span class="text-[10px] text-[#8A8A93] leading-normal block">Collapses header + tabs for absolute distraction-free engineering pipeline processing workflows.</span>
+                            </div>
+                            <button onclick="toggleFocusMode()" id="focus-toggle-btn" class="w-8 h-4 rounded-full bg-zinc-800 relative transition-colors duration-200 mt-1 flex-shrink-0">
+                                <span id="focus-toggle-dot" class="absolute top-0.5 left-0.5 w-3 h-3 rounded-full bg-zinc-400 transition-all duration-200"></span>
+                            </button>
+                        </div>
+                        <!-- Replay System Navigation Selection Anchor strip link -->
+                        <div onclick="restartOnboardingTour()" class="p-3 flex items-center justify-between hover:bg-zinc-900/30 cursor-pointer transition-colors text-zinc-200">
+                            <span>Replay Onboarding Tour</span>
+                            <i class="fa-solid fa-chevron-right text-[10px] text-zinc-600"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer System Credit and Component Trace Compilation Layer Line Metadata -->
+                <footer class="pt-2 text-center text-[9px] font-mono text-zinc-600 space-y-1">
+                    <div>My Synex · v1.0 · Cyber-grade AI Workspace</div>
+                    <div>MOCKED: Sora 2 video &nbsp;•&nbsp; Whisper voice</div>
+                </footer>
+            </div>
+
+        </main>
+
+        <!-- ==================== STICKY BOTTOM DEEP NAVIGATION NAVIGATION BAR ==================== -->
+        <nav id="app-navigation-bar" class="fixed bottom-0 w-full max-w-md bg-[#050508]/90 backdrop-blur-lg border-t border-zinc-900 z-40 flex items-center justify-around py-2 px-1 transition-all duration-300">
+            <!-- Workspace Trigger element link -->
+            <button onclick="switchTab('workspace')" id="nav-workspace" class="flex flex-col items-center gap-1 py-1.5 flex-1 transition-all text-cyan-400">
+                <i class="fa-regular fa-comment-dots text-base"></i>
+                <span class="text-[9px] font-medium tracking-wide">WORKSPACE</span>
+            </button>
+            <!-- Creator Suite element link -->
+            <button onclick="switchTab('create')" id="nav-create" class="flex flex-col items-center gap-1 py-1.5 flex-1 transition-all text-[#8A8A93] hover:text-white">
+                <i class="fa-solid fa-wand-magic-sparkles text-base"></i>
+                <span class="text-[9px] font-medium tracking-wide">CREATE</span>
+            </button>
+            <!-- Memory HUD engine structural link tracker selector -->
+            <button onclick="switchTab('memory')" id="nav-memory" class="flex flex-col items-center gap-1 py-1.5 flex-1 transition-all text-[#8A8A93] hover:text-white">
+                <i class="fa-solid fa-chart-line text-base"></i>
+                <span class="text-[9px] font-medium tracking-wide">MEMORY</span>
+            </button>
+            <!-- User Core Persona Profile and Parameters node module settings menu target link -->
+            <button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center gap-1 py-1.5 flex-1 transition-all text-[#8A8A93] hover:text-white">
+                <div class="w-4 h-4 rounded-full bg-zinc-800 text-[9px] flex items-center justify-center font-bold text-zinc-400 border border-transparent"><i class="fa-solid fa-user text-[9px]"></i></div>
+                <span class="text-[9px] font-medium tracking-wide">PROFILE</span>
+            </button>
+        </nav>
+
+
+        <!-- ==================== ELEGANT BOTTOM MODAL SHEET SELECTOR MULTI ENGINE ==================== -->
+        <div id="model-bottom-sheet" class="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm hidden flex-col justify-end transition-opacity duration-300 opacity-0">
+            <!-- Dismiss transparent container shield click wrapper mapping backdrop background block handler node links -->
+            <div class="absolute inset-0 z-0" onclick="toggleModelDropdown()"></div>
+            <!-- Glass Bottom Selector Panel Surface Structure Canvas Elements layout mapping matrix -->
+            <div class="w-full max-w-md mx-auto glass-card rounded-t-3xl border-t border-zinc-800 p-5 space-y-4 relative z-10 translate-y-20 transition-transform duration-300">
+                <div class="flex items-center justify-between border-b border-zinc-900 pb-3">
+                    <h3 class="text-xs font-bold tracking-widest text-[#8A8A93] uppercase">Switch Intelligence Engine</h3>
+                    <button onclick="toggleModelDropdown()" class="text-zinc-500 hover:text-white text-xs p-1"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <!-- Selection Collection Target Element Mapping Lists blocks node structure layout arrays -->
+                <div class="space-y-1.5">
+                    <!-- Target option structural card module block element list item 1 -->
+                    <div id="model-opt-claude" onclick="selectModelEngine('Claude Sonnet 4.5')" class="p-3 rounded-xl bg-zinc-900/40 border border-zinc-800 hover:border-zinc-700 flex items-center justify-between cursor-pointer transition-all">
+                        <div class="space-y-0.5">
+                            <h4 class="text-xs font-semibold text-white">Claude Sonnet 4.5</h4>
+                            <p class="text-[10px] font-mono text-zinc-500">Reasoning &nbsp;•&nbsp; anthropic</p>
+                        </div>
+                        <span id="check-icon-claude" class="w-4 h-4 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 flex items-center justify-center text-[8px]"><i class="fa-solid fa-check"></i></span>
+                    </div>
+                    <!-- Target option structural card module block element list item 2 -->
+                    <div id="model-opt-gpt" onclick="selectModelEngine('GPT-5.2')" class="p-3 rounded-xl bg-transparent border border-transparent hover:bg-zinc-900/20 flex items-center justify-between cursor-pointer transition-all">
+                        <div class="space-y-0.5">
+                            <h4 class="text-xs font-semibold text-zinc-300">GPT-5.2</h4>
+                            <p class="text-[10px] font-mono text-zinc-500">Multimodal &nbsp;•&nbsp; openai</p>
+                        </div>
+                        <span id="check-icon-gpt" class="w-4 h-4 rounded-full border border-zinc-800 text-transparent flex items-center justify-center text-[8px]"><i class="fa-solid fa-check"></i></span>
+                    </div>
+                    <!-- Target option structural card module block element list item 3 -->
+                    <div id="model-opt-gemini" onclick="selectModelEngine('Gemini 3 Pro')" class="p-3 rounded-xl bg-transparent border border-transparent hover:bg-zinc-900/20 flex items-center justify-between cursor-pointer transition-all">
+                        <div class="space-y-0.5">
+                            <h4 class="text-xs font-semibold text-zinc-300">Gemini 3 Pro</h4>
+                            <p class="text-[10px] font-mono text-zinc-500">Fast &nbsp;•&nbsp; gemini</p>
+                        </div>
+                        <span id="check-icon-gemini" class="w-4 h-4 rounded-full border border-zinc-800 text-transparent flex items-center justify-center text-[8px]"><i class="fa-solid fa-check"></i></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ==================== ARCHITECTURAL APPLICATION LOGIC IMPLEMENTATION ENGINE ==================== -->
+    <script>
+        // Global Application Context State Machine Parameters Matrix Variables Core Mapping Layer
+        let currentOnboardingStep = 0;
+        let activeTabState = 'workspace';
+        let activeEngineModel = 'Claude Sonnet 4.5';
+        let globalPersonalityState = 'Balanced';
+        let chatTurnDepthCounter = 0;
+        let isFocusModeEnabled = false;
+        let creatorActiveMode = 'image';
+
+        // Content Data Array Matrix Architecture Mapping for Onboarding Screen Sequences Elements Loop
+        const onboardingContentMatrix = [
+            {
+                badge: "SYSTEM BOOTING",
+                icon: '<i class="fa-solid fa-terminal text-purple-300"></i>',
+                title: "Welcome to Kinetix",
+                subtext: "A cyber-grade AI workspace. Dual-pane chat + Canvas, personality-driven models, and real-time memory HUD.",
+                btnText: 'Continue <i class="fa-solid fa-arrow-right text-[10px]"></i>'
+            },
+            {
+                badge: "MULTI-ENGINE",
+                icon: '<i class="fa-solid fa-bolt text-cyan-300 drop-shadow-[0_0_8px_rgba(6,182,212,0.5)]"></i>',
+                title: "Switch Models on the Fly",
+                subtext: "Claude Sonnet 4.5, GPT-5.2, and Gemini 3 Pro — swap engines mid-conversation instantly directly right inside the workspace header control matrix panel.",
+                btnText: 'Next Step <i class="fa-solid fa-arrow-right text-[10px]"></i>'
+            },
+            {
+                badge: "CREATOR SUITE",
+                icon: '<i class="fa-solid fa-wand-magic-sparkles text-purple-300"></i>',
+                title: "Generate Images & Video",
+                subtext: "Prompt Nano Banana for high-grade multi dimensional images and Sora 2 for rendering hyper temporal high dynamic range cinema video posters directly inline inside the workspace Canvas frame layout.",
+                btnText: 'Next Step <i class="fa-solid fa-arrow-right text-[10px]"></i>'
+            },
+            {
+                badge: "CONTEXT LOADED",
+                icon: '<i class="fa-solid fa-circle-info text-blue-300"></i>',
+                title: "Memory Engine Active",
+                subtext: "Track precisely what variables and memory indices the artificial core model tracking engine holds true in real time metrics dashboard layouts. Activate Focus Mode to instantly isolate workspace core canvas areas.",
+                btnText: 'Initialize Focus <i class="fa-solid fa-power-off text-[10px] ml-0.5"></i>'
+            }
+        ];
+
+        // Onboarding Screen State Navigation Logic Router Control Methods
+        function updateOnboardingScreen() {
+            const data = onboardingContentMatrix[currentOnboardingStep];
+            document.getElementById('onboarding-badge').innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span> <span>${data.badge}</span>`;
+            document.getElementById('onboarding-icon').innerHTML = data.icon;
+            document.getElementById('onboarding-title').textContent = data.title;
+            document.getElementById('onboarding-subtext').textContent = data.subtext;
+            document.getElementById('onboarding-btn').innerHTML = data.btnText;
+
+            // Render array loop page indicator dots tracking mapping context parameters structures
+            const dots = document.querySelectorAll('.dot-indicator');
+            dots.forEach((dot, idx) => {
+                if(idx === currentOnboardingStep) {
+                    dot.className = "dot-indicator w-3 h-1.5 rounded-full bg-cyan-400 transition-all duration-300";
+                } else {
+                    dot.className = "dot-indicator w-1.5 h-1.5 rounded-full bg-zinc-700 transition-all duration-300";
+                }
+            });
+        }
+
+        function nextOnboardingStep() {
+            if (currentOnboardingStep < onboardingContentMatrix.length - 1) {
+                currentOnboardingStep++;
+                updateOnboardingScreen();
+            } else {
+                exitOnboarding();
+            }
+        }
+
+        function exitOnboarding() {
+            const onboardingLayer = document.getElementById('onboarding-flow');
+            onboardingLayer.style.transition = 'opacity 0.4s ease-out, transform 0.4s ease-out';
+            onboardingLayer.style.opacity = '0';
+            onboardingLayer.style.transform = 'scale(0.98)';
+            setTimeout(() => {
+                onboardingLayer.classList.add('hidden');
+            }, 400);
+        }
+        function restartOnboardingTour() {
+            currentOnboardingStep = 0;
+            updateOnboardingScreen();
+            const onboardingLayer = document.getElementById('onboarding-flow');
+            onboardingLayer.classList.remove('hidden');
+            onboardingLayer.style.opacity = '1';
+            onboardingLayer.style.transform = 'scale(1)';
+        }
+
+        // Global System Dynamic Tab Navigation Core Router Handler Switches Methods Layout
+        function switchTab(targetViewID) {
+            activeTabState = targetViewID;
+            
+            // Hide all elements views frames tracking layers models arrays definitions
+            document.querySelectorAll('.app-view').forEach(view => view.classList.add('hidden'));
+            // Display active view target element context
+            document.getElementById(`view-${targetViewID}`).classList.remove('hidden');
+
+            // Reset navigation menu layout attributes text color states indices elements definitions links array loops mappings
+            const navIDs = ['workspace', 'create', 'memory', 'profile'];
+            navIDs.forEach(id => {
+                const element = document.getElementById(`nav-${id}`);
+                if(id === targetViewID) {
+                    element.className = "flex flex-col items-center gap-1 py-1.5 flex-1 transition-all text-cyan-400";
+                    // Custom formatting fallback check wrapper maps for profile anchor icon component
+                    if(id === 'profile') {
+                        element.querySelector('div').className = "w-4 h-4 rounded-full bg-cyan-950 text-[9px] flex items-center justify-center font-bold text-cyan-400 border border-cyan-800/60";
+                    }
+                } else {
+                    element.className = "flex flex-col items-center gap-1 py-1.5 flex-1 transition-all text-[#8A8A93] hover:text-white";
+                    if(id === 'profile') {
+                        element.querySelector('div').className = "w-4 h-4 rounded-full bg-zinc-800 text-[9px] flex items-center justify-center font-bold text-zinc-400 border border-transparent";
+                    }
+                }
+            });
+        }
+
+        // Dropdown System Selector Sheet Modal Open/Close Toggles Logic Framework Modules Handlers
+        function toggleModelDropdown() {
+            const modal = document.getElementById('model-bottom-sheet');
+            const sheet = modal.querySelector('.glass-card');
+            
+            if(modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                    modal.classList.add('opacity-100');
+                    sheet.classList.remove('translate-y-20');
+                    sheet.classList.add('translate-y-0');
+                }, 20);
+            } else {
+                modal.classList.remove('opacity-100');
+                modal.classList.add('opacity-0');
+                sheet.classList.remove('translate-y-0');
+                sheet.classList.add('translate-y-20');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300);
+            }
+        }
+
+        // Model Engine Selection Mapping Value State Mutation Core Pipeline Triggers
+        function selectModelEngine(modelName) {
+            activeEngineModel = modelName;
+            
+            // Dynamic text payload template rendering mapping pipelines actions elements layouts fields
+            document.getElementById('active-model-ribbon-tag').textContent = modelName;
+            document.getElementById('hud-active-model').textContent = modelName;
+
+            // Mutate dropdown structural active graphic checklist state arrays
+            const modelIDs = ['claude', 'gpt', 'gemini'];
+            const targetTokenMap = { 'Claude Sonnet 4.5': 'claude', 'GPT-5.2': 'gpt', 'Gemini 3 Pro': 'gemini' };
+            
+            modelIDs.forEach(id => {
+                const card = document.getElementById(`model-opt-${id}`);
+                const check = document.getElementById(`check-icon-${id}`);
+                
+                if(id === targetTokenMap[modelName]) {
+                    card.className = "p-3 rounded-xl bg-zinc-900/40 border border-zinc-800 hover:border-zinc-700 flex items-center justify-between cursor-pointer transition-all";
+                    card.querySelector('h4').className = "text-xs font-semibold text-white";
+                    check.className = "w-4 h-4 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 flex items-center justify-center text-[8px]";
+                } else {
+                    card.className = "p-3 rounded-xl bg-transparent border border-transparent hover:bg-zinc-900/20 flex items-center justify-between cursor-pointer transition-all";
+                    card.querySelector('h4').className = "text-xs font-semibold text-zinc-300";
+                    check.className = "w-4 h-4 rounded-full border border-zinc-800 text-transparent flex items-center justify-center text-[8px]";
+                }
+            });
+
+            // Auto synchronise and push configuration choices parameters matrix definitions indices downstream to profile layout
+            syncGlobalDefaultPreferenceIndicator(modelName);
+            // Auto close pane selector
+            toggleModelDropdown();
+        }
+
+        function selectGlobalDefaultModel(modelName) {
+            activeEngineModel = modelName;
+            document.getElementById('active-model-ribbon-tag').textContent = modelName;
+            document.getElementById('hud-active-model').textContent = modelName;
+            syncGlobalDefaultPreferenceIndicator(modelName);
+        }
+
+        function syncGlobalDefaultPreferenceIndicator(modelName) {
+            const prefTargetMap = { 'Claude Sonnet 4.5': 'claude', 'GPT-5.2': 'gpt', 'Gemini 3 Pro': 'gemini' };
+            ['claude', 'gpt', 'gemini'].forEach(id => {
+                const checkIndicator = document.getElementById(`pref-check-${id}`);
+                if(id === prefTargetMap[modelName]) {
+                    checkIndicator.className = "w-4 h-4 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 flex items-center justify-center text-[8px]";
+                } else {
+                    checkIndicator.className = "w-4 h-4 rounded-full border border-zinc-800 text-transparent flex items-center justify-center text-[8px]";
+                }
+            });
+        }
+
+        // AI Core Personality Behavior Matrix State Modifier Core Engines
+        function setPersonality(mode) {
+            globalPersonalityState = mode;
+            document.getElementById('header-personality-tag').textContent = `${mode} Mode`;
+            document.getElementById('hud-personality').textContent = mode;
+
+            const modeBtnIDs = ['Balanced', 'Technical', 'Creative', 'Concise'];
+            modeBtnIDs.forEach(m => {
+                const btn = document.getElementById(`p-btn-${m.toLowerCase()}`);
+                if(m === mode) {
+                    btn.className = "py-2 rounded-lg text-center bg-zinc-900 text-white border border-zinc-800";
+                } else {
+                    btn.className = "py-2 rounded-lg text-center text-zinc-400 hover:text-white";
+                }
+            });
+        }
+
+        // Creator Suite Sub Mode Navigation Selection Handlers
+        function setCreateMode(mode) {
+            creatorActiveMode = mode;
+            const imgBtn = document.getElementById('create-toggle-img');
+            const vidBtn = document.getElementById('create-toggle-vid');
+            const promptBox = document.getElementById('create-prompt-input');
+            const badge = document.getElementById('creator-model-badge');
+
+            if(mode === 'image') {
+                imgBtn.className = "flex-1 py-2 text-center rounded-lg font-medium transition-all bg-zinc-900 text-white flex items-center justify-center gap-1.5 border border-zinc-800/80";
+                vidBtn.className = "flex-1 py-2 text-center rounded-lg font-medium transition-all text-[#8A8A93] hover:text-white flex items-center justify-center gap-1.5";
+                promptBox.value = "A cyberpunk cat DJing in Tokyo, neon rain, 4k";
+                badge.className = "text-[9px] font-semibold text-purple-400 px-2 py-0.5 rounded-md bg-purple-950/40 border border-purple-900/50 flex items-center gap-1";
+                badge.innerHTML = `<span class="w-1 h-1 rounded-full bg-purple-400"></span> Nano Banana`;
+            } else {
+                vidBtn.className = "flex-1 py-2 text-center rounded-lg font-medium transition-all bg-zinc-900 text-white flex items-center justify-center gap-1.5 border border-zinc-800/80";
+                imgBtn.className = "flex-1 py-2 text-center rounded-lg font-medium transition-all text-[#8A8A93] hover:text-white flex items-center justify-center gap-1.5";
+                promptBox.value = "A rocket taking off from Mars orbit, cinematic wide angle";
+                badge.className = "text-[9px] font-semibold text-cyan-400 px-2 py-0.5 rounded-md bg-cyan-950/40 border border-cyan-900/50 flex items-center gap-1";
+                badge.innerHTML = `<span class="w-1 h-1 rounded-full bg-cyan-400"></span> Sora 2`;
+            }
+            // Sync current dynamic string character length counters tracking
+            document.getElementById('create-char-counter').textContent = `${promptBox.value.length}/500`;
+        }
+
+        // Real-Time Characters Length Tracker Limiter Monitor Listeners For Design Compliance
+        document.getElementById('create-prompt-input').addEventListener('input', function(e) {
+            document.getElementById('create-char-counter').textContent = `${e.target.value.length}/500`;
+        });
+
+        // Workspace Prompt Context Chips Quick Insertion Operations
+        function injectPrompt(text) {
+            const input = document.getElementById('chat-input-bar');
+            input.value = text;
+            input.focus();
+        }
+
+        // Message Dispatcher Logic Handlers Pipeline Mocks
+        function handleSendMessage() {
+            const input = document.getElementById('chat-input-bar');
+            if(!input.value.trim()) return;
+
+            // Increment structural conversation deep turn counter trackers
+            chatTurnDepthCounter++;
+            document.getElementById('turn-counter-tag').textContent = `${chatTurnDepthCounter} turns`;
+            document.getElementById('hud-turns').textContent = chatTurnDepthCounter;
+
+            // Build structural context tag dynamically in the Memory HUD
+            const contextBox = document.getElementById('hud-context-box');
+            if(chatTurnDepthCounter === 1) {
+                contextBox.innerHTML = '<div class="flex flex-wrap gap-1.5 w-full justify-start align-top p-1"></div>';
+            }
+            const innerContainer = contextBox.querySelector('div') || contextBox;
+            
+            // Build temporary item
+            const tagChipText = input.value.split(' ')[0] || "Query";
+            const newChip = document.createElement('span');
+            newChip.className = "text-[10px] font-mono font-medium px-2 py-0.5 bg-cyan-950/50 text-cyan-400 border border-cyan-900/60 rounded";
+            newChip.textContent = `${tagChipText.substring(0,8).toUpperCase()}_NODE`;
+            innerContainer.appendChild(newChip);
+
+            // Wipe standard input container
+            input.value = "";
+            
+            // Subtle system flash confirmation indicator highlight alerts context response mappings
+            const activeRibbonTurnText = document.getElementById('turn-counter-tag');
+            activeRibbonTurnText.className = "flex-shrink-0 text-[10px] bg-cyan-900/40 text-cyan-300 border border-cyan-800 rounded-full px-2.5 py-1 font-bold animate-pulse";
+            setTimeout(() => {
+                activeRibbonTurnText.className = "flex-shrink-0 text-[10px] bg-zinc-900/40 text-[#8A8A93] border border-zinc-800/60 rounded-full px-2.5 py-1";
+            }, 1000);
+        }
+
+        // Fire interaction action loops mappings on return enterprise keyboards events inputs fields
+        document.getElementById('chat-input-bar').addEventListener('keydown', function(e) {
+            if(e.key === 'Enter') {
+                handleSendMessage();
+            }
+        });
+
+        // Creative Suite Render Artifact Mock Event Trigger Alert Dispatchers
+        function triggerArtifactGeneration() {
+            alert(`[System Dispatch]: Initiating generation pipeline on structural core framework module utilizing ${creatorActiveMode === 'image' ? 'Nano Banana' : 'Sora 2'} engines. Processing active layers context pipeline...`);
+        }
+
+        // Global System Absolute Focus Isolation Mode Workspace Controller Functionalities
+        function toggleFocusMode() {
+            isFocusModeEnabled = !isFocusModeEnabled;
+            const btn = document.getElementById('focus-toggle-btn');
+            const dot = document.getElementById('focus-toggle-dot');
+            const header = document.getElementById('app-header');
+            const navigationBar = document.getElementById('app-navigation-bar');
+
+            if(isFocusModeEnabled) {
+                btn.className = "w-8 h-4 rounded-full bg-cyan-500 relative transition-colors duration-200 mt-1 flex-shrink-0";
+                dot.className = "absolute top-0.5 right-0.5 w-3 h-3 rounded-full bg-white transition-all duration-200";
+                
+                // Hide header frame and navigation panel smoothly to emulate distraction free workspace isolation
+                header.style.transform = 'translateY(-100%)';
+                header.style.opacity = '0';
+                navigationBar.style.transform = 'translateY(100%)';
+                navigationBar.style.opacity = '0';
+                
+                // Switch perspective directly seamlessly to core clean canvas hub workspace view
+                switchTab('workspace');
+                
+                // Spawn overlay banner helper tracking toast alert notice to let users know how to escape
+                const escapeNotice = document.createElement('div');
+                escapeNotice.id = "focus-escape-toast";
+                escapeNotice.className = "fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-zinc-950/90 border border-cyan-500/30 text-cyan-400 text-[10px] tracking-wide font-medium shadow-xl pointer-events-none animate-bounce";
+                escapeNotice.innerHTML = `<i class="fa-solid fa-circle-nodes mr-1.5"></i> Focus Mode Active. Disable preference item from Profile to reset view structure layouts.`;
+                document.body.appendChild(escapeNotice);
+                
+                setTimeout(() => {
+                    const notice = document.getElementById('focus-escape-toast');
+                    if(notice) notice.remove();
+                }, 4000);
+
+            } else {
+                btn.className = "w-8 h-4 rounded-full bg-zinc-800 relative transition-colors duration-200 mt-1 flex-shrink-0";
+                dot.className = "absolute top-0.5 left-0.5 w-3 h-3 rounded-full bg-zinc-400 transition-all duration-200";
+                
+                // Restore elements views architectures definitions components
+                header.style.transform = 'translateY(0)';
+                header.style.opacity = '1';
+                navigationBar.style.transform = 'translateY(0)';
+                navigationBar.style.opacity = '1';
+                
+                const notice = document.getElementById('focus-escape-toast');
+                if(notice) notice.remove();
+            }
+        }
+    </script>
+</body>
+</html>
